@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DezzBGram Workspace</title>
+    <title>DezzBGram - Ultimate Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { height: 100dvh; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        /* Premium Glass & Animations */
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
         .modal-enter { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .slide-up { animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .toast-enter { animation: slideLeft 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
@@ -19,15 +20,14 @@
         @keyframes slideUp { 0% { opacity: 0; transform: translateY(100%); } 100% { opacity: 1; transform: translateY(0); } }
         @keyframes slideLeft { 0% { opacity: 0; transform: translateX(100%); } 100% { opacity: 1; transform: translateX(0); } }
         
-        /* Bubble Chat V12 */
-        .chat-user { background: #ffffff; border: 1px solid #e5e7eb; border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-        .chat-bot { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-bottom-right-radius: 6px; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
+        /* Chat Bubbles Style */
+        .chat-user { background: #ffffff; border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .chat-bot { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border-bottom-right-radius: 4px; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
         
-        .chat-item-wrap .delete-chat-btn { opacity: 0; transition: all 0.2s; transform: scale(0.9); }
-        .chat-item-wrap:hover .delete-chat-btn { opacity: 1; transform: scale(1); }
+        /* Input Area Transition */
+        .input-focus-ring:focus-within { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); border-color: #3b82f6; }
 
         @media (max-width: 768px) {
-            .chat-item-wrap .delete-chat-btn { opacity: 1; transform: scale(1); }
             .mobile-view-chat #sidebar { transform: translateX(-100%); }
             .mobile-view-chat #chat-area { transform: translateX(0); }
         }
@@ -37,147 +37,142 @@
 
 <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-<div id="general-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 modal-enter text-center" id="general-modal-content"></div>
+<div id="general-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 modal-enter text-center" id="general-modal-content"></div>
 </div>
 
 <div id="msg-action-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] flex items-end md:items-center justify-center p-0 md:p-4 hidden" onclick="closeModal('msg-action-modal')">
-    <div class="bg-white w-full md:w-[340px] rounded-t-[30px] md:rounded-3xl shadow-2xl slide-up md:modal-enter overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
-        <div class="w-full flex justify-center pt-3 md:hidden pb-1"><div class="w-12 h-1.5 bg-gray-300 rounded-full"></div></div>
+    <div class="bg-white w-full md:w-80 rounded-t-3xl md:rounded-2xl shadow-2xl slide-up md:modal-enter overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
         
-        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80 flex justify-between items-center shrink-0">
-            <div class="overflow-hidden pr-3 text-left">
+        <div class="w-full flex justify-center pt-3 md:hidden pb-1">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
+        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center shrink-0">
+            <div class="overflow-hidden pr-3">
                 <h3 class="font-bold text-gray-900 text-[15px]">Tindakan Pesan</h3>
                 <p id="action-msg-preview" class="text-xs text-gray-500 truncate mt-0.5">Preview...</p>
             </div>
-            <button onclick="actionCopy()" class="text-blue-600 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded-xl text-xs font-bold transition active:scale-95 shrink-0 flex items-center gap-1.5"><i class="fa-regular fa-copy"></i> Salin</button>
+            <button onclick="actionCopy()" class="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0"><i class="fa-regular fa-copy"></i> Salin</button>
         </div>
-        
-        <div class="flex flex-col p-2.5 overflow-y-auto hide-scroll gap-1">
-            <button onclick="actionReply()" class="flex items-center gap-3.5 p-3 hover:bg-gray-100 text-gray-800 rounded-2xl transition font-semibold text-[14px]"><div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-reply"></i></div> Balas Pesan</button>
-            <button onclick="actionEdit()" id="btn-edit-msg" class="flex items-center gap-3.5 p-3 hover:bg-gray-100 text-gray-800 rounded-2xl transition font-semibold text-[14px]"><div class="w-8 h-8 rounded-full bg-yellow-50 text-yellow-500 flex items-center justify-center"><i class="fa-solid fa-pen"></i></div> Edit Pesan</button>
-            <button onclick="actionForward()" class="flex items-center gap-3.5 p-3 hover:bg-gray-100 text-gray-800 rounded-2xl transition font-semibold text-[14px]"><div class="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center"><i class="fa-solid fa-share"></i></div> Teruskan...</button>
-            <button onclick="actionRepeat()" class="flex items-center gap-3.5 p-3 hover:bg-gray-100 text-gray-800 rounded-2xl transition font-semibold text-[14px]"><div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center"><i class="fa-solid fa-rotate-right"></i></div> Kirim Ulang</button>
-            <button onclick="actionPin()" class="flex items-center gap-3.5 p-3 hover:bg-gray-100 text-gray-800 rounded-2xl transition font-semibold text-[14px]"><div class="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center"><i class="fa-solid fa-thumbtack"></i></div> Sematkan (Pin)</button>
-            <div class="h-px bg-gray-200 my-1 mx-3"></div>
-            <button onclick="actionDelete()" class="flex items-center gap-3.5 p-3 hover:bg-red-50 text-red-600 rounded-2xl transition font-bold text-[14px]"><div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><i class="fa-solid fa-trash-can"></i></div> Hapus Pesan</button>
+
+        <div class="flex flex-col p-2 overflow-y-auto hide-scroll">
+            <button onclick="actionReply()" class="flex items-center gap-3.5 p-3.5 hover:bg-blue-50 text-gray-700 rounded-xl transition font-semibold text-[14px]"><i class="fa-solid fa-reply w-5 text-center text-blue-500 text-lg"></i> Balas Pesan</button>
+            <button onclick="actionEdit()" id="btn-edit-msg" class="flex items-center gap-3.5 p-3.5 hover:bg-yellow-50 text-gray-700 rounded-xl transition font-semibold text-[14px]"><i class="fa-solid fa-pen w-5 text-center text-yellow-500 text-lg"></i> Edit Pesan</button>
+            <button onclick="actionForward()" class="flex items-center gap-3.5 p-3.5 hover:bg-indigo-50 text-gray-700 rounded-xl transition font-semibold text-[14px]"><i class="fa-solid fa-share w-5 text-center text-indigo-500 text-lg"></i> Teruskan...</button>
+            <button onclick="actionRepeat()" class="flex items-center gap-3.5 p-3.5 hover:bg-emerald-50 text-gray-700 rounded-xl transition font-semibold text-[14px]"><i class="fa-solid fa-rotate-right w-5 text-center text-emerald-500 text-lg"></i> Kirim Ulang</button>
+            <button onclick="actionPin()" class="flex items-center gap-3.5 p-3.5 hover:bg-orange-50 text-gray-700 rounded-xl transition font-semibold text-[14px]"><i class="fa-solid fa-thumbtack w-5 text-center text-orange-500 text-lg"></i> Sematkan (Pin)</button>
+            <div class="h-px bg-gray-100 my-1 mx-2"></div>
+            <button onclick="actionDelete()" class="flex items-center gap-3.5 p-3.5 hover:bg-red-50 text-red-600 rounded-xl transition font-bold text-[14px]"><i class="fa-solid fa-trash-can w-5 text-center text-lg"></i> Hapus Pesan</button>
         </div>
     </div>
 </div>
 
 <div class="flex w-full h-full relative" id="app-container" style="display: none;">
 
-    <div class="w-full md:w-[76px] bg-[#0f172a] border-t md:border-t-0 md:border-r border-slate-800 flex md:flex-col items-center justify-around md:justify-start md:py-6 md:gap-4 absolute md:relative bottom-0 z-40 h-[60px] md:h-full shrink-0 px-2 md:px-0 overflow-x-auto hide-scroll">
-        <button onclick="showTools('dezzbgram')" title="Info Web" class="w-[42px] h-[42px] rounded-[14px] bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg flex items-center justify-center transition hover:scale-105 shrink-0"><i class="fa-solid fa-bolt"></i></button>
-        <button onclick="showTools('broadcast')" title="Broadcast" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-bullhorn"></i></button>
-        <button onclick="showTools('ttdl')" title="TikTok DL" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-pink-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-brands fa-tiktok"></i></button>
-        <button onclick="showTools('device')" title="Device Info" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-indigo-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-mobile-screen"></i></button>
-        <button onclick="showTools('login')" title="Ganti/Tambah Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
+    <div class="w-full md:w-[76px] bg-[#111827] border-t md:border-t-0 md:border-r border-slate-800 flex md:flex-col items-center justify-around md:justify-start md:py-6 md:gap-4 absolute md:relative bottom-0 z-40 h-[60px] md:h-full shrink-0 px-2 md:px-0 overflow-x-auto hide-scroll shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
+        <button onclick="showTools('dezzbgram')" title="DezzBGram Info" class="w-[42px] h-[42px] rounded-[14px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg flex items-center justify-center transition hover:scale-105 shrink-0"><i class="fa-solid fa-bolt"></i></button>
+        <button onclick="showTools('broadcast')" title="Broadcast" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:text-white hover:bg-white/20 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-bullhorn"></i></button>
+        <button onclick="showTools('ttdl')" title="TikTok DL" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:text-white hover:bg-white/20 flex items-center justify-center transition shrink-0"><i class="fa-brands fa-tiktok"></i></button>
+        <button onclick="showTools('login')" title="Tambah Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
         
-        <div class="hidden md:block w-8 h-px bg-white/20 my-1"></div><div class="md:hidden h-6 w-px bg-white/20 mx-1"></div>
+        <div class="hidden md:block w-8 h-px bg-white/10 my-1"></div><div class="md:hidden h-6 w-px bg-white/10 mx-1"></div>
         <div id="bot-list-container" class="flex md:flex-col gap-3 shrink-0 items-center"></div>
     </div>
 
-    <div id="sidebar" class="w-full md:w-[340px] bg-white border-r border-gray-200 flex flex-col absolute md:relative z-20 h-[calc(100%-60px)] md:h-full shrink-0 transform translate-x-0 transition-transform duration-300">
+    <div id="sidebar" class="w-full md:w-[320px] bg-white border-r border-gray-200 flex flex-col absolute md:relative z-20 h-[calc(100%-60px)] md:h-full shrink-0 transform translate-x-0 transition-transform duration-300">
         
-        <div class="p-4 border-b border-gray-100 bg-white shadow-sm shrink-0 flex items-center justify-between z-10">
+        <div class="p-4 border-b border-gray-100 bg-white shadow-[0_2px_5px_rgba(0,0,0,0.02)] shrink-0 flex items-center justify-between">
             <div class="flex items-center gap-3 overflow-hidden">
-                <img id="active-bot-avatar" src="https://ui-avatars.com/api/?name=B" class="w-11 h-11 rounded-full object-cover border border-gray-200 shadow-sm shrink-0">
+                <img id="active-bot-avatar" src="https://ui-avatars.com/api/?name=Bot" class="w-11 h-11 rounded-full object-cover shadow-sm border border-gray-100">
                 <div class="overflow-hidden">
-                    <h2 id="active-bot-name" class="font-extrabold text-gray-900 text-[15px] truncate leading-tight">DezzBGram</h2>
-                    <p id="active-bot-username" class="text-[12px] text-blue-600 font-bold truncate">@Memuat...</p>
+                    <h2 id="active-bot-name" class="font-bold text-gray-900 text-[15px] truncate">Memuat...</h2>
+                    <p id="active-bot-username" class="text-[12px] text-blue-500 font-medium truncate">@username</p>
                 </div>
             </div>
-            <button onclick="confirmLogoutBot()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-power-off text-sm"></i></button>
+            <button onclick="confirmLogoutBot()" title="Logout" class="w-9 h-9 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition shrink-0 ml-2"><i class="fa-solid fa-power-off text-sm"></i></button>
         </div>
         
         <div class="px-3 pt-3 pb-1 bg-white">
-            <div class="bg-gray-100/80 rounded-2xl px-3 py-2.5 flex items-center gap-2 text-gray-500 focus-within:ring-2 focus-within:ring-blue-100 focus-within:bg-blue-50 transition border border-transparent focus-within:border-blue-200">
+            <div class="bg-gray-100 rounded-xl px-3 py-2 flex items-center gap-2 text-gray-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                <input type="text" placeholder="Cari obrolan..." class="bg-transparent border-none outline-none w-full text-[14px]" oninput="cariObrolan(this.value)">
+                <span class="text-sm">Cari obrolan...</span>
             </div>
         </div>
 
         <div id="chat-list" class="flex-1 overflow-y-auto hide-scroll p-2 space-y-0.5 bg-white"></div>
     </div>
 
-    <div id="chat-area" class="w-full absolute md:relative z-30 h-[calc(100%-60px)] md:h-full bg-[#f0f2f5] flex flex-col transform translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div id="chat-area" class="w-full absolute md:relative z-30 h-[calc(100%-60px)] md:h-full bg-[#e4e4e7] flex flex-col transform translate-x-full md:translate-x-0 transition-transform duration-300">
         
-        <div class="h-[70px] border-b border-gray-200 flex items-center px-4 glass shrink-0 z-10">
-            <button onclick="closeMobileChat()" class="md:hidden mr-3 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-95"><i class="fa-solid fa-arrow-left"></i></button>
-            <img id="header-avatar" src="https://ui-avatars.com/api/?name=U" class="w-11 h-11 rounded-full object-cover mr-3 border-2 border-white shadow-sm bg-white">
+        <div class="h-[65px] border-b border-gray-200 flex items-center px-4 glass shrink-0 z-10 cursor-pointer" onclick="showTools('device')">
+            <button onclick="event.stopPropagation(); closeMobileChat()" class="md:hidden mr-3 w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-95"><i class="fa-solid fa-arrow-left"></i></button>
+            <img id="header-avatar" src="https://ui-avatars.com/api/?name=U" class="w-10 h-10 rounded-full object-cover mr-3 border border-white shadow-sm bg-white">
             <div class="flex-1 overflow-hidden">
                 <h3 id="header-name" class="font-bold text-gray-900 truncate text-[16px]">Pilih Obrolan</h3>
-                <p id="header-sub" class="text-[12px] text-green-600 font-bold truncate">Online</p>
+                <p id="header-sub" class="text-[12px] text-green-600 font-medium truncate">Online 24/7</p>
             </div>
         </div>
 
-        <div id="messages-container" class="flex-1 overflow-y-auto hide-scroll p-4 md:p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] relative"></div>
+        <div id="messages-container" class="flex-1 overflow-y-auto hide-scroll p-4 md:p-6 space-y-3 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] relative"></div>
 
-        <div class="bg-transparent shrink-0 z-10 flex flex-col p-3 md:p-4">
-            <div class="bg-white rounded-[24px] shadow-[0_5px_20px_rgba(0,0,0,0.06)] border border-gray-200/60 overflow-hidden flex flex-col">
+        <div class="bg-white shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] z-10 flex flex-col">
+            
+            <div class="flex items-center gap-1.5 px-4 py-2 bg-gray-50/80 border-b border-gray-100 overflow-x-auto hide-scroll">
+                <button onclick="formatText('b')" class="w-7 h-7 rounded-md hover:bg-gray-200 font-bold text-gray-700 text-sm transition">B</button>
+                <button onclick="formatText('i')" class="w-7 h-7 rounded-md hover:bg-gray-200 italic font-serif text-gray-700 text-sm transition">I</button>
+                <button onclick="formatText('s')" class="w-7 h-7 rounded-md hover:bg-gray-200 line-through text-gray-700 text-sm transition">S</button>
+                <button onclick="formatText('code')" class="px-2 h-7 rounded-md hover:bg-gray-200 font-mono text-gray-600 text-[11px] border border-gray-200 transition">Code</button>
+            </div>
+
+            <div id="action-indicator" class="hidden items-center justify-between bg-white border-l-4 border-blue-500 pl-3 pr-2 py-2 mx-4 mt-3 rounded-r-lg shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                <div class="overflow-hidden flex flex-col justify-center">
+                    <span id="action-label" class="text-[11px] font-bold text-blue-600 mb-0.5 leading-none">Membalas Pesan</span>
+                    <span id="action-text-ui" class="text-[13px] text-gray-600 truncate leading-none mt-0.5">...</span>
+                </div>
+                <button onclick="cancelAction()" class="w-7 h-7 rounded-full text-gray-400 hover:bg-gray-100 hover:text-red-500 flex justify-center items-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex items-end gap-2 p-3 md:p-4">
+                <button onclick="document.getElementById('fileUpload').click()" class="w-11 h-11 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition shrink-0 mb-0.5"><i class="fa-solid fa-paperclip text-[20px]"></i></button>
+                <input type="file" id="fileUpload" class="hidden" accept="image/*,audio/*,video/*" onchange="handleFileUpload()">
                 
-                <div class="flex items-center gap-1.5 px-4 py-2 bg-gray-50/50 border-b border-gray-100 overflow-x-auto hide-scroll">
-                    <button onclick="formatText('b')" class="w-7 h-7 rounded-lg hover:bg-gray-200 font-bold text-gray-700 text-sm transition">B</button>
-                    <button onclick="formatText('i')" class="w-7 h-7 rounded-lg hover:bg-gray-200 italic font-serif text-gray-700 text-sm transition">I</button>
-                    <button onclick="formatText('s')" class="w-7 h-7 rounded-lg hover:bg-gray-200 line-through text-gray-700 text-sm transition">S</button>
-                    <button onclick="formatText('code')" class="px-2.5 h-7 rounded-lg hover:bg-gray-200 font-mono text-gray-600 text-[11px] border border-gray-200 transition bg-white shadow-sm">Code</button>
-                </div>
-
-                <div id="action-indicator" class="hidden items-center justify-between bg-blue-50/50 border-l-[4px] border-blue-500 pl-3 pr-2 py-2 mx-2 mt-2 rounded-r-xl">
-                    <div class="overflow-hidden flex flex-col justify-center">
-                        <span id="action-label" class="text-[11px] font-extrabold text-blue-600 mb-0.5">Membalas:</span>
-                        <span id="action-text-ui" class="text-[13px] text-gray-700 truncate font-medium">...</span>
-                    </div>
-                    <button onclick="cancelAction()" class="w-7 h-7 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-500 flex justify-center items-center transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+                <div class="flex-1 bg-gray-100 rounded-3xl flex items-center px-4 py-1 border border-transparent input-focus-ring transition duration-200">
+                    <textarea id="msgInput" rows="1" placeholder="Ketik pesan..." class="w-full bg-transparent border-none focus:ring-0 py-2.5 outline-none text-[15px] resize-none hide-scroll" style="min-height: 44px; max-height: 120px;" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
                 </div>
                 
-                <div class="flex items-end gap-2 p-2">
-                    <button onclick="document.getElementById('fileUpload').click()" class="w-11 h-11 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition shrink-0 mb-0.5" title="Kirim File"><i class="fa-solid fa-paperclip text-[20px]"></i></button>
-                    <input type="file" id="fileUpload" class="hidden" accept="image/*,audio/*,video/*,application/*" onchange="handleFileUpload()">
-                    
-                    <button onclick="showTools('poll')" class="w-11 h-11 rounded-full text-blue-500 hover:bg-blue-50 flex items-center justify-center transition shrink-0 mb-0.5" title="Buat Polling"><i class="fa-solid fa-chart-simple text-[18px]"></i></button>
-
-                    <div class="flex-1 flex items-center px-1 py-1 transition duration-200">
-                        <textarea id="msgInput" rows="1" placeholder="Ketik pesan..." class="w-full bg-transparent border-none focus:ring-0 py-2 outline-none text-[15px] resize-none hide-scroll" style="min-height: 40px; max-height: 120px;" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-                    </div>
-                    
-                    <button id="send-btn" onclick="kirimPesan()" class="w-[46px] h-[46px] rounded-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-90 shrink-0 transition mb-0.5 mr-1"><i class="fa-solid fa-paper-plane text-[18px] ml-1"></i></button>
-                </div>
+                <button id="send-btn" onclick="kirimPesan()" class="w-[46px] h-[46px] rounded-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shadow-lg shadow-blue-600/30 active:scale-90 shrink-0 transition mb-0.5"><i class="fa-solid fa-paper-plane text-[18px] ml-1"></i></button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. UTILITIES (BASE64 ENCODER ANTI ERROR) ---
-    // Fungsi ini bikin teks se-ngawur apapun (enter, kutip) aman dimasukin ke atribut HTML (onclick)
-    const safeEncode = (str) => btoa(encodeURIComponent(str || ''));
-    const safeDecode = (str) => decodeURIComponent(atob(str));
-
+    // --- UI UTILITIES ---
     function showToast(msg, type = 'success') {
         const c = document.getElementById('toast-container'); const t = document.createElement('div');
-        t.className = `${type==='success'?'bg-slate-800':'bg-red-600'} text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 toast-enter border border-white/10`;
-        t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check text-green-400':'fa-xmark text-white'} text-lg"></i><span class="text-[13px] font-bold tracking-wide">${msg}</span>`;
+        t.className = `${type==='success'?'bg-slate-800':'bg-red-600'} text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 toast-enter border border-white/10`;
+        t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check text-green-400':'fa-xmark text-white'} text-lg"></i><span class="text-[13px] font-medium tracking-wide">${msg}</span>`;
         c.appendChild(t); setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(100%)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 2500);
     }
-    
     function openModalGen(htmlContent) { document.getElementById('general-modal-content').innerHTML = htmlContent; document.getElementById('general-modal').classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function closeGenModal() { closeModal('general-modal'); }
 
-    // --- 2. STATE MANAGEMENT ---
+    // --- STATE MANAGEMENT ---
     let bots = JSON.parse(localStorage.getItem('dz_bots')) || []; 
     let activeToken = localStorage.getItem('dz_active') || '';
     let chatsData = {}; let activeChatId = null; let pollingInterval = null;
     let selectedMsgId = null; let selectedMsgText = ""; let selectedMsgType = "text"; let selectedMsgSender = "";
     let replyToMsgId = null; let editMsgId = null;
 
+    // --- AUTO LOGIN CHECK ---
     window.onload = () => { 
         if (bots.length === 0 || !activeToken) showTools('login'); 
         else initApp(); 
     };
 
+    // --- API TELEGRAM ---
     async function tgApi(method, payload = {}, isFormData = false) {
         let opt = { method: 'POST' };
         if (isFormData) opt.body = payload; else { opt.headers = {'Content-Type': 'application/json'}; opt.body = JSON.stringify(payload); }
@@ -185,13 +180,14 @@
         catch (e) { return {ok: false}; }
     }
 
-    // --- 3. CORE INIT ---
+    // --- INIT APP & RENDER INFO BOT ---
     function initApp() {
         document.getElementById('general-modal').classList.add('hidden');
         document.getElementById('app-container').style.display = 'flex';
         let bot = bots.find(b => b.token === activeToken);
-        if(!bot) { showTools('login'); return; } 
+        if(!bot) return; 
         
+        // Render Bot Info Header
         document.getElementById('active-bot-name').innerText = bot.name;
         document.getElementById('active-bot-username').innerText = `@${bot.username}`;
         document.getElementById('active-bot-avatar').src = bot.avatar;
@@ -203,84 +199,69 @@
     function renderNavRail() {
         let c = document.getElementById('bot-list-container'); c.innerHTML = '';
         bots.forEach(b => {
-            let active = b.token === activeToken ? 'border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' : 'opacity-50 hover:opacity-100 hover:scale-105';
+            let active = b.token === activeToken ? 'border-2 border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.5)] scale-110' : 'opacity-50 hover:opacity-100 hover:scale-105';
             c.innerHTML += `<img src="${b.avatar}" title="${b.name}" onclick="localStorage.setItem('dz_active', '${b.token}'); location.reload();" class="w-[42px] h-[42px] rounded-[14px] object-cover cursor-pointer transition-all duration-300 ${active}">`;
         });
     }
 
-    // --- 4. TOOL MODALS (DENGAN LIST BOT DI LOGIN) ---
+    // --- TOOL MODALS ---
     function showTools(type) {
         let html = '';
         if(type === 'login') {
-            let savedBotsHTML = '';
-            if(bots.length > 0) {
-                savedBotsHTML = `<div class="mb-4 text-left"><p class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">Pilih Bot Tersimpan:</p><div class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1 hide-scroll">`;
-                bots.forEach(b => { savedBotsHTML += `<div onclick="localStorage.setItem('dz_active', '${b.token}'); location.reload();" class="flex items-center p-3 bg-gray-50 hover:bg-blue-50 border border-gray-100 rounded-2xl cursor-pointer transition"><img src="${b.avatar}" class="w-10 h-10 rounded-full mr-3"><div class="flex-1 overflow-hidden"><h4 class="text-[14px] font-bold text-gray-900 truncate">${b.name}</h4><p class="text-xs text-blue-500 font-medium truncate">@${b.username}</p></div></div>`; });
-                savedBotsHTML += `</div></div><div class="flex items-center gap-3 my-4"><div class="h-px bg-gray-200 flex-1"></div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Atau Tambah Baru</span><div class="h-px bg-gray-200 flex-1"></div></div>`;
-            }
             html = `<div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-robot"></i></div>
-                    <h2 class="text-2xl font-black text-gray-900 mb-4">Workspace Login</h2>
-                    ${savedBotsHTML}
-                    <input type="password" id="i-token" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl mb-3 text-sm font-mono text-center outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Paste Token Bot Baru...">
-                    <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Login Token</button>
-                    ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full mt-2 bg-gray-100 text-gray-700 py-3.5 rounded-2xl font-bold hover:bg-gray-200 transition">Batal</button>` : ''}`;
+                    <h2 class="text-xl font-extrabold text-gray-900 mb-4">Login Workspace</h2>
+                    <input type="password" id="i-token" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-sm font-mono text-center outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Paste Token Bot...">
+                    <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl mb-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Masuk Sistem</button>
+                    ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Batal</button>` : ''}`;
         } else if(type === 'device') {
-            html = `<h2 class="text-2xl font-black mb-4 text-gray-900">📱 Info Device</h2>
-                    <div class="text-left bg-gray-50 p-4 rounded-2xl text-[14px] space-y-2 border border-gray-200">
+            html = `<h2 class="text-xl font-extrabold mb-4">📱 Info Device</h2>
+                    <div class="text-left bg-gray-50 p-4 rounded-xl text-[14px] space-y-2 border border-gray-200">
                     <p><b class="text-gray-900">OS:</b> <span class="text-gray-600">${navigator.platform}</span></p>
                     <p><b class="text-gray-900">Browser:</b> <span class="text-gray-600">${navigator.userAgent.split(' ')[0]}</span></p>
                     <p><b class="text-gray-900">Resolusi:</b> <span class="text-gray-600">${window.innerWidth} x ${window.innerHeight} px</span></p></div>
-                    <button onclick="closeGenModal()" class="w-full mt-4 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold hover:bg-red-100 transition">Tutup</button>`;
+                    <button onclick="closeGenModal()" class="w-full mt-5 bg-red-50 text-red-600 py-3.5 rounded-xl font-bold hover:bg-red-100 transition">Tutup</button>`;
         } else if(type === 'ttdl') {
-            html = `<h2 class="text-2xl font-black mb-2 text-gray-900"><i class="fa-brands fa-tiktok"></i> TikTok DL</h2>
-                    <p class="text-[13px] text-gray-500 font-medium mb-5">Video dikirim otomatis tanpa watermark</p>
-                    <input type="text" id="i-tt" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl mb-4 text-sm outline-none focus:ring-2 focus:ring-pink-500 transition" placeholder="Paste Link TikTok...">
-                    <button onclick="prosesTTDL()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl mb-2 shadow-xl hover:bg-black transition">Download Video</button>
-                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
+            html = `<h2 class="text-xl font-extrabold mb-2"><i class="fa-brands fa-tiktok"></i> TikTok DL</h2>
+                    <p class="text-[13px] text-gray-500 mb-5">Video dikirim otomatis tanpa watermark</p>
+                    <input type="text" id="i-tt" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-pink-500 transition" placeholder="Paste Link TikTok...">
+                    <button onclick="prosesTTDL()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl mb-2 shadow-lg hover:bg-black transition">Download</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
         } else if(type === 'broadcast') {
-            html = `<h2 class="text-2xl font-black mb-4 text-gray-900">📢 Broadcast Pesan</h2>
-                    <textarea id="i-bc" rows="4" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl mb-4 text-[14px] outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none hide-scroll" placeholder="Ketik pesan massal di sini... (Mendukung HTML)"></textarea>
-                    <button onclick="prosesBC()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-2xl mb-2 shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 transition">Kirim ke Semua (${Object.keys(chatsData).length} chat)</button>
-                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
+            html = `<h2 class="text-xl font-extrabold mb-4">📢 Broadcast Pesan</h2>
+                    <textarea id="i-bc" rows="4" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-[14px] outline-none focus:ring-2 focus:ring-emerald-500 transition resize-none hide-scroll" placeholder="Ketik pesan massal di sini... (Mendukung HTML)"></textarea>
+                    <button onclick="prosesBC()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl mb-2 shadow-lg shadow-emerald-500/30 hover:bg-emerald-700 transition">Kirim ke Semua</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
         } else if(type === 'dezzbgram') {
-            html = `<div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-5xl shadow-2xl"><i class="fa-solid fa-bolt"></i></div>
-                    <h2 class="text-3xl font-black text-gray-900 mb-1">DezzBGram</h2>
-                    <p class="text-[13px] font-extrabold text-blue-600 bg-blue-50 inline-block px-4 py-1.5 rounded-full mb-5">Versi 12.0 Ultimate Fix</p>
-                    <button onclick="window.location.href='dev.html'" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl mb-2 hover:bg-black transition flex justify-center items-center gap-2 shadow-xl"><i class="fa-solid fa-code"></i> Ke Halaman Developer</button>
-                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Tutup</button>`;
+            html = `<div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-xl"><i class="fa-solid fa-bolt"></i></div>
+                    <h2 class="text-2xl font-black text-gray-900 mb-1">DezzBGram</h2>
+                    <p class="text-[13px] font-bold text-blue-600 bg-blue-50 inline-block px-3 py-1 rounded-full mb-5">Versi 10.0 (Ultimate Polish)</p>
+                    <button onclick="window.location.href='dev.html'" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl mb-2 hover:bg-black transition flex justify-center items-center gap-2"><i class="fa-solid fa-code"></i> Info Developer</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition">Tutup</button>`;
         } else if(type === 'forward') {
-            let listHTML = Object.values(chatsData).map(c => `<div onclick="executeForward('${c.id}', true)" class="flex items-center p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition"><img src="${c.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}`}" class="w-10 h-10 rounded-full mr-3 border border-gray-100"><span class="text-[14px] font-bold text-gray-800 truncate">${c.name}</span></div>`).join('');
-            html = `<h2 class="text-xl font-black mb-4 text-left text-gray-900">Teruskan ke...</h2>
-                    <div class="flex gap-2 mb-4 bg-gray-100 p-1.5 rounded-2xl">
-                        <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-white shadow-sm text-gray-900 py-2.5 rounded-xl text-xs font-bold transition">Asli (Ori)</button>
-                        <button onclick="setFwdMode(true)" id="btn-fwd-copy" class="flex-1 text-gray-500 py-2.5 rounded-xl text-xs font-bold transition">No Sender</button>
+            let listHTML = Object.values(chatsData).map(c => `<div onclick="executeForward('${c.id}', true)" class="flex items-center p-2.5 hover:bg-gray-50 rounded-xl cursor-pointer transition"><img src="${c.avatar||`https://ui-avatars.com/api/?name=${c.name}`}" class="w-9 h-9 rounded-full mr-3 border border-gray-100"><span class="text-[14px] font-semibold text-gray-800 truncate">${c.name}</span></div>`).join('');
+            html = `<h2 class="text-lg font-extrabold mb-4 text-left">Teruskan ke...</h2>
+                    <div class="flex gap-2 mb-4 bg-gray-100 p-1 rounded-xl">
+                        <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-white shadow-sm text-gray-900 py-2 rounded-lg text-xs font-bold transition">Asli</button>
+                        <button onclick="setFwdMode(true)" id="btn-fwd-copy" class="flex-1 text-gray-500 py-2 rounded-lg text-xs font-bold transition">No Sender</button>
                     </div>
-                    <div class="max-h-56 overflow-y-auto border border-gray-200 p-2 rounded-2xl mb-4 hide-scroll bg-gray-50/50">${listHTML}</div>
-                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
-        } else if(type === 'poll') {
-            html = `<h2 class="text-xl font-black mb-4 text-left text-gray-900"><i class="fa-solid fa-chart-simple text-blue-500 mr-2"></i> Buat Polling</h2>
-                    <input type="text" id="poll-q" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl mb-3 text-[14px] font-bold outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Pertanyaan Anda...">
-                    <input type="text" id="poll-o1" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl mb-2 text-sm outline-none focus:border-blue-500 transition" placeholder="Opsi 1...">
-                    <input type="text" id="poll-o2" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl mb-2 text-sm outline-none focus:border-blue-500 transition" placeholder="Opsi 2...">
-                    <input type="text" id="poll-o3" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-2xl mb-4 text-sm outline-none focus:border-blue-500 transition" placeholder="Opsi 3 (Opsional)...">
-                    <button onclick="kirimPoll()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl mb-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Kirim Polling</button>
-                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
+                    <div class="max-h-56 overflow-y-auto border border-gray-100 p-1 rounded-xl mb-4 hide-scroll">${listHTML}</div>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
         }
         openModalGen(html);
     }
 
-    // --- TOOL ACTIONS ---
+    // --- AKSI TOOLS ---
     async function prosesLogin() {
         let token = document.getElementById('i-token').value.trim(); if(!token) return showToast('Isi token!', 'error');
         let res = await fetch(`https://api.telegram.org/bot${token}/getMe`); let data = await res.json();
         if(data.ok) {
-            bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.result.first_name)}&background=3b82f6&color=fff`});
+            bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${data.result.first_name}&background=3b82f6&color=fff`});
             localStorage.setItem('dz_bots', JSON.stringify(bots)); localStorage.setItem('dz_active', token); location.reload(); 
         } else showToast('Token invalid!', 'error');
     }
     
     function confirmLogoutBot() {
-        if(confirm('Hapus bot ini dari Workspace DezzBGram?')) {
+        if(confirm('Logout dan hapus bot ini dari DezzBGram?')) {
             bots = bots.filter(b => b.token !== activeToken); localStorage.setItem('dz_bots', JSON.stringify(bots));
             if(bots.length > 0) localStorage.setItem('dz_active', bots[0].token);
             else { localStorage.removeItem('dz_active'); localStorage.removeItem('dz_bots'); }
@@ -289,7 +270,7 @@
     }
 
     async function prosesTTDL() {
-        if(!activeChatId) return showToast('Buka chat dulu bang!', 'error');
+        if(!activeChatId) return showToast('Pilih obrolan dulu bang!', 'error');
         let url = document.getElementById('i-tt').value; if(!url.includes('tiktok.com')) return showToast('Link salah', 'error');
         showToast('Download dimulai...'); closeGenModal();
         try {
@@ -297,13 +278,13 @@
             if(d.code===0 && d.data.play) {
                 let s = await tgApi('sendVideo', {chat_id: activeChatId, video: d.data.play, caption: `📥 *TikTok No Watermark*\n${d.data.title}`});
                 if(s.ok) simpanPesan(activeChatId, chatsData[activeChatId].name, d.data.title, 'bot', s.result.message_id, 'video', d.data.play);
-            } else showToast('Gagal narik video TikTok', 'error');
+            } else showToast('Gagal ambil video', 'error');
         } catch(e) { showToast('Error API TikTok', 'error'); }
     }
 
     async function prosesBC() {
         let txt = document.getElementById('i-bc').value; if(!txt) return; closeGenModal();
-        let cIds = Object.keys(chatsData); let c = 0; showToast('Proses Broadcast...', 'success');
+        let cIds = Object.keys(chatsData); let c = 0;
         for(let id of cIds) {
             let r = await tgApi('sendMessage', {chat_id: id, text: `[BROADCAST]\n\n${txt}`, parse_mode: 'HTML'});
             if(r.ok) { c++; simpanPesan(id, chatsData[id].name, `[BROADCAST]\n${txt}`, 'bot', r.result.message_id, 'text'); }
@@ -311,23 +292,11 @@
         showToast(`Terkirim ke ${c} chat!`);
     }
 
-    async function kirimPoll() {
-        if(!activeChatId) return showToast('Pilih chat dulu!', 'error');
-        let q = document.getElementById('poll-q').value.trim();
-        let o1 = document.getElementById('poll-o1').value.trim(); let o2 = document.getElementById('poll-o2').value.trim();
-        if(!q || !o1 || !o2) return showToast('Pertanyaan & 2 opsi wajib isi!', 'error');
-        let opts = [o1, o2]; let o3 = document.getElementById('poll-o3').value.trim(); if(o3) opts.push(o3);
-        
-        closeGenModal();
-        let res = await tgApi('sendPoll', {chat_id: activeChatId, question: q, options: JSON.stringify(opts)});
-        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, `📊 Polling: ${q}`, 'bot', res.result.message_id, 'poll'); }
-    }
-
     let isCopyFwd = false;
     function setFwdMode(isCopy) {
         isCopyFwd = isCopy;
-        document.getElementById('btn-fwd-copy').className = isCopy ? 'flex-1 bg-white shadow-sm text-gray-900 py-2.5 rounded-xl text-xs font-bold transition' : 'flex-1 text-gray-500 py-2.5 rounded-xl text-xs font-bold transition';
-        document.getElementById('btn-fwd-ori').className = !isCopy ? 'flex-1 bg-white shadow-sm text-gray-900 py-2.5 rounded-xl text-xs font-bold transition' : 'flex-1 text-gray-500 py-2.5 rounded-xl text-xs font-bold transition';
+        document.getElementById('btn-fwd-copy').className = isCopy ? 'flex-1 bg-white shadow-sm text-gray-900 py-2 rounded-lg text-xs font-bold transition' : 'flex-1 text-gray-500 py-2 rounded-lg text-xs font-bold transition';
+        document.getElementById('btn-fwd-ori').className = !isCopy ? 'flex-1 bg-white shadow-sm text-gray-900 py-2 rounded-lg text-xs font-bold transition' : 'flex-1 text-gray-500 py-2 rounded-lg text-xs font-bold transition';
     }
     async function executeForward(targetId) {
         closeGenModal(); let method = isCopyFwd ? 'copyMessage' : 'forwardMessage';
@@ -336,19 +305,9 @@
         else showToast('Gagal teruskan', 'error');
     }
 
-    // --- SEARCH BAR (SIDEBAR) ---
-    function cariObrolan(keyword) {
-        let filter = keyword.toLowerCase();
-        let items = document.querySelectorAll('.chat-item-wrap');
-        items.forEach(item => {
-            let name = item.getAttribute('data-name').toLowerCase();
-            if(name.indexOf(filter) > -1) item.style.display = 'flex';
-            else item.style.display = 'none';
-        });
-    }
-
     function formatText(tag) {
-        let i = document.getElementById('msgInput'); let start = i.selectionStart; let end = i.selectionEnd;
+        let i = document.getElementById('msgInput');
+        let start = i.selectionStart; let end = i.selectionEnd;
         let text = i.value; let sel = text.substring(start, end) || "teks";
         let rep = `<${tag}>${sel}</${tag}>`; if(tag === 'code') rep = `<code>${sel}</code>`;
         i.value = text.substring(0, start) + rep + text.substring(end); i.focus();
@@ -361,77 +320,33 @@
         
         arr.forEach(c => {
             let last = c.messages[c.messages.length - 1];
-            let txt = last ? (last.type==='service'?'📌 Pesan disematkan':(last.type==='photo'?'📷 Gambar':(last.type==='video'?'🎥 Video':(last.type==='audio'?'🎵 Audio':(last.type==='sticker'?'🌟 Stiker':(last.type==='poll'?'📊 Polling':last.text))))))) : 'Mulai obrolan...';
-            let act = activeChatId == c.id ? 'bg-blue-50/80 border-blue-500' : 'bg-white border-transparent hover:bg-gray-50';
+            let txt = last ? (last.type==='service'?'📌 Pesan disematkan':(last.type==='photo'?'📷 Gambar':(last.type==='video'?'🎥 Video':(last.type==='audio'?'🎵 Audio':(last.type==='sticker'?'🌟 Stiker':last.text))))) : 'Mulai obrolan...';
+            let act = activeChatId == c.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50';
             let badge = c.type !== 'private' ? `<span class="bg-indigo-100 text-indigo-700 px-1.5 py-[2px] rounded text-[9px] font-extrabold ml-1.5 tracking-wide">GRUP</span>` : '';
             let unread = c.unread > 0 ? `<div class="bg-blue-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shrink-0 ml-2 shadow-sm">${c.unread}</div>` : '';
 
-            // Perbaikan nama kalau undefined
-            let safeName = c.name && c.name !== "undefined" ? c.name : "Pengguna";
-
             list.innerHTML += `
-                <div class="chat-item-wrap flex items-center px-3 py-2.5 rounded-2xl cursor-pointer transition border-l-[3px] ${act}" data-name="${safeName}" onclick="openChat('${c.id}')">
-                    <img src="${c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}`}" class="w-12 h-12 rounded-full object-cover mr-3.5 shrink-0 border border-gray-100">
+                <div class="flex items-center px-3 py-2.5 rounded-xl cursor-pointer transition ${act}" onclick="openChat('${c.id}')">
+                    <img src="${c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}`}" class="w-[46px] h-[46px] rounded-full object-cover mr-3.5 shrink-0 border border-gray-200">
                     <div class="flex-1 overflow-hidden">
-                        <div class="flex justify-between items-center mb-0.5"><h4 class="font-bold text-gray-900 text-[14px] truncate">${safeName} ${badge}</h4>${unread}</div>
-                        <p class="text-[12.5px] text-gray-500 truncate">${txt.replace(/<[^>]*>?/gm, '')}</p>
+                        <div class="flex justify-between items-center mb-0.5"><h4 class="font-bold text-gray-900 text-[14.5px] truncate">${c.name} ${badge}</h4>${unread}</div>
+                        <p class="text-[13px] text-gray-500 truncate">${txt.replace(/<[^>]*>?/gm, '')}</p>
                     </div>
-                    <button onclick="hapusObrolan('${c.id}', event)" class="delete-chat-btn w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition ml-2 shrink-0 z-10" title="Hapus Obrolan"><i class="fa-solid fa-trash-can text-xs"></i></button>
                 </div>`;
         });
-    }
-
-    function hapusObrolan(chatId, e) {
-        e.stopPropagation();
-        if(confirm(`Yakin hapus chat ini dari daftar web?`)) {
-            delete chatsData[chatId];
-            let botId = bots.find(b => b.token === activeToken).id;
-            localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
-            if(activeChatId === chatId) { closeMobileChat(); document.getElementById('messages-container').innerHTML = ''; }
-            renderSidebar(); showToast('Chat dihapus.');
-        }
     }
 
     function openChat(chatId) {
         activeChatId = chatId; chatsData[chatId].unread = 0;
         let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
         document.getElementById('main-body').classList.add('mobile-view-chat');
-        
-        let safeName = chatsData[chatId].name && chatsData[chatId].name !== "undefined" ? chatsData[chatId].name : "Pengguna";
-        document.getElementById('header-name').innerText = safeName;
-        document.getElementById('header-avatar').src = chatsData[chatId].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}`;
+        document.getElementById('header-name').innerText = chatsData[chatId].name;
+        document.getElementById('header-avatar').src = chatsData[chatId].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chatsData[chatId].name)}`;
         document.getElementById('header-sub').innerText = chatsData[chatId].type !== 'private' ? 'Grup Obrolan' : 'Private Chat';
         renderMessages(); renderSidebar();
     }
     function closeMobileChat() { document.getElementById('main-body').classList.remove('mobile-view-chat'); activeChatId = null; renderSidebar(); }
     function formatTime(ts) { let d = new Date(ts); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
-
-    // --- SWIPE TO REPLY (Perbaikan Biar Gak Bentrok) ---
-    let swipeStartX = 0; let swipeTarget = null; let isSwiping = false;
-    function ts(e, el) { swipeStartX = e.touches[0].clientX; swipeTarget = el; isSwiping = false; el.style.transition = 'none'; }
-    function tm(e, el) { 
-        if(!swipeStartX) return;
-        let d = swipeStartX - e.touches[0].clientX; 
-        if(d > 10) isSwiping = true; // Tandai kalo beneran geser, bukan tap
-        if(d > 0 && d < 60) el.style.transform = `translateX(-${d}px)`; 
-    }
-    function te(e, el, id, b64Txt) {
-        if(!swipeStartX) return;
-        let d = swipeStartX - e.changedTouches[0].clientX;
-        el.style.transition = 'transform 0.2s ease-out'; el.style.transform = `translateX(0)`;
-        
-        let txt = safeDecode(b64Txt);
-        if(d > 40 && isSwiping) { 
-            // Trigger Reply Kalo Geser
-            actionReplyManual(id, txt); 
-        } else if (!isSwiping) {
-            // Trigger Menu Kalo Cuma Tap
-            // Note: Data type and sender should ideally be passed too, but we can find it from chatsData
-            let msg = chatsData[activeChatId].messages.find(m => m.id === id);
-            if(msg) showMsgAction(id, txt, msg.type, msg.sender);
-        }
-        swipeStartX = 0; swipeTarget = null; isSwiping = false;
-    }
 
     // --- ACTION MODAL ---
     function showMsgAction(id, txt, type, sender) {
@@ -447,10 +362,7 @@
         document.getElementById('action-text-ui').innerText = txt.replace(/<[^>]*>?/gm, '');
         document.getElementById('msgInput').focus();
     }
-    
-    function actionReplyManual(id, txt) { replyToMsgId = id; editMsgId = null; setActionUI("Membalas Pesan", txt||"Media"); }
-    function actionReply() { closeModal('msg-action-modal'); actionReplyManual(selectedMsgId, selectedMsgText); }
-    
+    function actionReply() { closeModal('msg-action-modal'); replyToMsgId = selectedMsgId; editMsgId = null; setActionUI("Membalas Pesan", selectedMsgText||"Media"); }
     function actionEdit() { closeModal('msg-action-modal'); editMsgId = selectedMsgId; replyToMsgId = null; document.getElementById('msgInput').value = selectedMsgText; setActionUI("Edit Pesan", selectedMsgText); document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-check text-[18px]"></i>`; }
     function actionForward() { closeModal('msg-action-modal'); showTools('forward'); }
     function actionCopy() { closeModal('msg-action-modal'); navigator.clipboard.writeText(selectedMsgText); showToast('Teks berhasil disalin!'); }
@@ -481,7 +393,7 @@
 
     function cancelAction() { replyToMsgId = null; editMsgId = null; document.getElementById('action-indicator').classList.replace('flex', 'hidden'); document.getElementById('msgInput').value=''; document.getElementById('msgInput').style.height=''; document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-paper-plane text-[18px] ml-1"></i>`;}
 
-    // --- RENDER BUBBLE CHAT (ANTI ERROR BASE64) ---
+    // --- RENDER BUBBLE CHAT ---
     function renderMessages() {
         if (!activeChatId) return;
         const box = document.getElementById('messages-container'); box.innerHTML = '';
@@ -494,25 +406,22 @@
             let alignCls = isUser ? 'items-start' : 'items-end';
             let bubCls = isUser ? 'chat-user' : 'chat-bot';
             
-            let senderName = (chat.type !== 'private' && isUser && msg.realSender) ? `<div class="text-[11px] font-extrabold text-blue-500 mb-1.5 leading-none tracking-wide">${msg.realSender}</div>` : '';
+            let senderName = (chat.type !== 'private' && isUser && msg.realSender) ? `<div class="text-[11px] font-extrabold text-blue-500 mb-1 leading-none tracking-wide">${msg.realSender}</div>` : '';
             let replyHtml = msg.replyToText ? `<div class="bg-black/5 border-l-[3px] border-black/20 px-2 py-1.5 rounded mb-1.5 text-[11px] opacity-90 truncate max-w-full"><span class="font-bold text-blue-500 block mb-0.5">Membalas</span> ${msg.replyToText.replace(/<[^>]*>?/gm, '')}</div>` : '';
             
             let mediaHtml = '';
             if(msg.type === 'photo') mediaHtml = `<img src="${msg.mediaUrl}" class="rounded-xl mb-2 max-w-[240px] border border-black/5 shadow-sm">`;
             if(msg.type === 'video') mediaHtml = `<video src="${msg.mediaUrl}" controls class="rounded-xl mb-2 max-w-[240px] border border-black/5 shadow-sm"></video>`;
             if(msg.type === 'audio') mediaHtml = `<audio src="${msg.mediaUrl}" controls class="h-10 max-w-[240px] mb-1 outline-none"></audio>`;
-            if(msg.type === 'sticker') mediaHtml = `<img src="${msg.mediaUrl}" class="w-32 h-32 mb-1 drop-shadow-lg">`; 
+            if(msg.type === 'sticker') mediaHtml = `<img src="${msg.mediaUrl}" class="w-36 h-36 mb-1 drop-shadow-lg">`; 
 
-            // ENCODE TEXT JADI BASE64 BIAR HTML GAK ERROR PAS ADA TANDA KUTIP/ENTER
-            let b64Text = safeEncode(msg.text); 
-            let txtHtml = msg.text ? `<div class="text-[14.5px] leading-relaxed break-words whitespace-pre-wrap">${msg.text}</div>` : '';
+            let safeText = (msg.text || '').replace(/'/g, "\\'"); 
+            let txtHtml = msg.text ? `<div class="text-[15px] leading-relaxed break-words whitespace-pre-wrap">${msg.text}</div>` : '';
 
-            // Hapus onclick dari div utama, dipindah ke logika ontouchend/onclick via JS murni di fungsi te()
             box.innerHTML += `
-                <div class="flex flex-col ${alignCls} w-full mb-1.5 overflow-hidden">
-                    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl ${bubCls} cursor-pointer active:scale-[0.98] transition-transform shadow-sm" 
-                         ontouchstart="ts(event, this)" ontouchmove="tm(event, this)" ontouchend="te(event, this, ${msg.id}, '${b64Text}')"
-                         onmousedown="if(event.button===0){ showMsgAction(${msg.id}, safeDecode('${b64Text}'), '${msg.type}', '${msg.sender}'); }">
+                <div class="flex flex-col ${alignCls} w-full mb-1.5">
+                    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl ${bubCls} cursor-pointer active:scale-[0.97] transition-transform" 
+                         onclick="showMsgAction(${msg.id}, '${safeText}', '${msg.type}', '${msg.sender}')">
                         ${senderName} ${replyHtml} ${mediaHtml} ${txtHtml}
                         <div class="text-[10px] opacity-60 text-right mt-1 font-medium tracking-wide">${formatTime(msg.timestamp)}</div>
                     </div>
@@ -523,10 +432,8 @@
 
     // --- SIMPAN & POLLING ---
     function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl='', replyText=null, chatType='private', realSender=null) {
-        let safeName = nama && nama !== "undefined" ? nama : "Pengguna";
-        
-        if (!chatsData[chatId]) chatsData[chatId] = { id: chatId, name: safeName, type: chatType, unread: 0, avatar: '', messages: [] };
-        else { chatsData[chatId].name = safeName; chatsData[chatId].type = chatType; }
+        if (!chatsData[chatId]) chatsData[chatId] = { id: chatId, name: nama, type: chatType, unread: 0, avatar: '', messages: [] };
+        else { chatsData[chatId].name = nama; chatsData[chatId].type = chatType; }
         if (sender === 'user' && activeChatId !== chatId) chatsData[chatId].unread = (chatsData[chatId].unread || 0) + 1;
         
         chatsData[chatId].messages.push({ id: msgId, text, sender, type, mediaUrl, replyToText: replyText, realSender, timestamp: Date.now() });
@@ -556,10 +463,7 @@
                     localOffset = update.update_id; localStorage.setItem(offsetKey, localOffset);
                     if (update.message) {
                         let msg = update.message; let type = 'text'; let mediaUrl = ''; let teks = msg.text || msg.caption || '';
-                        
-                        let chatName = "Unknown";
-                        if(msg.chat.type === 'private') { chatName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : ''); } 
-                        else { chatName = msg.chat.title || "Grup"; }
+                        let chatName = msg.chat.type === 'private' ? msg.from.first_name : msg.chat.title;
 
                         let fileId = null;
                         if (msg.photo) { type = 'photo'; fileId = msg.photo[msg.photo.length - 1].file_id; }
@@ -573,28 +477,25 @@
                         }
                         
                         let replyTxt = msg.reply_to_message ? (msg.reply_to_message.text || 'Media') : null;
-                        let realSnd = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : '');
-                        simpanPesan(msg.chat.id.toString(), chatName, teks, 'user', msg.message_id, type, mediaUrl, replyTxt, msg.chat.type, realSnd);
+                        simpanPesan(msg.chat.id.toString(), chatName, teks, 'user', msg.message_id, type, mediaUrl, replyTxt, msg.chat.type, msg.from.first_name);
                     }
                 }
             }
         }, 2000);
     }
 
-    // --- KIRIM FILE & PESAN ---
+    // --- KIRIM ---
     async function handleFileUpload() {
         let f = document.getElementById('fileUpload').files[0]; if (!f || !activeChatId) return;
         let isVid = f.type.startsWith('video/'); let isAud = f.type.startsWith('audio/');
-        let method = isVid ? 'sendVideo' : (isAud ? 'sendAudio' : 'sendDocument');
-        if(f.type.startsWith('image/')) method = 'sendPhoto';
-        
-        let param = method.replace('send', '').toLowerCase();
+        let method = isVid ? 'sendVideo' : (isAud ? 'sendAudio' : 'sendPhoto');
+        let param = isVid ? 'video' : (isAud ? 'audio' : 'photo');
         let fd = new FormData(); fd.append('chat_id', activeChatId); fd.append(param, f);
         if(replyToMsgId) fd.append('reply_to_message_id', replyToMsgId);
         
         showToast('Mengirim file...');
         let res = await tgApi(method, fd, true);
-        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, param, URL.createObjectURL(f), null); cancelAction(); }
+        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, isVid?'video':(isAud?'audio':'photo'), URL.createObjectURL(f), null); cancelAction(); }
         else showToast('Gagal ngirim file', 'error');
     }
 
