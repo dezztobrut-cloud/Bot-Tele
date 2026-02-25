@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TeleBot Premium Workspace V7</title>
+    <title>DezzBGram Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -20,13 +20,12 @@
         @keyframes slideUp { 0% { opacity: 0; transform: translateY(100%); } 100% { opacity: 1; transform: translateY(0); } }
         
         .chat-user { background: #ffffff; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
-        .chat-bot { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(37,99,235,0.2); }
+        .chat-bot { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(37,99,235,0.2); }
         
-        .delete-chat-btn { opacity: 0; transition: opacity 0.2s; }
-        .chat-item:hover .delete-chat-btn { opacity: 1; }
+        /* Swipe to Reply Transition */
+        .swipe-bubble { transition: transform 0.2s ease-out; }
 
         @media (max-width: 768px) {
-            .delete-chat-btn { opacity: 1; }
             .mobile-view-chat #sidebar { transform: translateX(-100%); }
             .mobile-view-chat #chat-area { transform: translateX(0); }
         }
@@ -36,160 +35,126 @@
 
 <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-<div id="custom-confirm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 modal-enter text-center">
-        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-circle-exclamation"></i></div>
-        <h3 id="confirm-title" class="font-bold text-lg text-gray-900 mb-2">Konfirmasi</h3>
-        <p id="confirm-desc" class="text-sm text-gray-500 mb-6">Apakah anda yakin?</p>
-        <div class="flex gap-3">
-            <button onclick="closeConfirm()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition">Batal</button>
-            <button id="confirm-yes-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-500/30">Ya, Lanjutkan</button>
+<div id="general-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 modal-enter text-center" id="general-modal-content">
         </div>
-    </div>
 </div>
 
-<div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 modal-enter relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
-        <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-robot"></i></div>
-            <h2 class="text-xl font-extrabold text-gray-900">Workspace Login</h2>
-        </div>
-        <input type="password" id="tokenInput" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-blue-500 outline-none mb-4 text-center font-mono text-sm" placeholder="Paste Token Bot...">
-        <button id="login-btn" onclick="tambahBot()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition">Masuk</button>
-        <button id="close-login-btn" onclick="closeModal('login-modal')" class="hidden w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl transition mt-2">Batal</button>
-    </div>
-</div>
-
-<div id="msg-action-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999] flex items-end md:items-center justify-center p-0 md:p-4" style="display: none;" onclick="closeModal('msg-action-modal')">
+<div id="msg-action-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999] flex items-end md:items-center justify-center p-0 md:p-4 hidden" onclick="closeModal('msg-action-modal')">
     <div class="bg-white w-full md:w-80 rounded-t-2xl md:rounded-2xl shadow-2xl slide-up md:modal-enter overflow-hidden" onclick="event.stopPropagation()">
-        <div class="p-4 border-b border-gray-100 text-center bg-gray-50">
+        <div class="p-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h3 class="font-bold text-gray-800 text-sm">Aksi Pesan</h3>
-            <p id="action-msg-preview" class="text-xs text-gray-500 truncate mt-1">Preview...</p>
+            <button onclick="actionCopy()" class="text-blue-600 text-xs font-bold bg-blue-100 px-2 py-1 rounded"><i class="fa-regular fa-copy"></i> Salin</button>
         </div>
-        <div class="flex flex-col p-2">
-            <button onclick="actionReply()" class="flex items-center gap-3 p-3 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition font-medium"><i class="fa-solid fa-reply w-5"></i> Balas (Reply)</button>
-            <button onclick="actionForward()" class="flex items-center gap-3 p-3 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition font-medium"><i class="fa-solid fa-share w-5"></i> Teruskan</button>
-            <button onclick="actionPin()" class="flex items-center gap-3 p-3 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition font-medium"><i class="fa-solid fa-thumbtack w-5"></i> Pin Pesan</button>
+        <div class="flex flex-col p-2 max-h-[60vh] overflow-y-auto">
+            <button onclick="actionReply()" class="flex items-center gap-3 p-3 hover:bg-blue-50 text-gray-700 rounded-xl transition font-medium text-sm"><i class="fa-solid fa-reply w-5 text-blue-500"></i> Balas (Reply)</button>
+            <button onclick="actionEdit()" id="btn-edit-msg" class="flex items-center gap-3 p-3 hover:bg-yellow-50 text-gray-700 rounded-xl transition font-medium text-sm"><i class="fa-solid fa-pen w-5 text-yellow-500"></i> Edit Pesan</button>
+            <button onclick="actionForward()" class="flex items-center gap-3 p-3 hover:bg-indigo-50 text-gray-700 rounded-xl transition font-medium text-sm"><i class="fa-solid fa-share w-5 text-indigo-500"></i> Teruskan...</button>
+            <button onclick="actionRepeat()" class="flex items-center gap-3 p-3 hover:bg-emerald-50 text-gray-700 rounded-xl transition font-medium text-sm"><i class="fa-solid fa-rotate-right w-5 text-emerald-500"></i> Repeat (Kirim Ulang)</button>
+            <button onclick="actionPin()" class="flex items-center gap-3 p-3 hover:bg-orange-50 text-gray-700 rounded-xl transition font-medium text-sm"><i class="fa-solid fa-thumbtack w-5 text-orange-500"></i> Pin Pesan</button>
             <div class="h-px bg-gray-100 my-1"></div>
-            <button onclick="actionDelete()" class="flex items-center gap-3 p-3 hover:bg-red-50 text-red-500 rounded-xl transition font-bold"><i class="fa-solid fa-trash-can w-5"></i> Hapus Pesan</button>
-        </div>
-    </div>
-</div>
-
-<div id="ttdl-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl w-full max-w-sm p-6 modal-enter">
-        <h3 class="font-bold text-lg mb-2 text-center"><i class="fa-brands fa-tiktok text-black"></i> TikTok Downloader</h3>
-        <p class="text-xs text-gray-500 text-center mb-4">Video akan dikirim ke chat yang sedang aktif saat ini tanpa watermark.</p>
-        <input type="text" id="tt-url" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none mb-4 text-sm focus:border-blue-500" placeholder="Paste link TikTok...">
-        <div class="flex gap-2">
-            <button onclick="closeModal('ttdl-modal')" class="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">Batal</button>
-            <button id="tt-btn" onclick="prosesTTDL()" class="flex-1 bg-black text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Download</button>
+            <button onclick="actionDelete()" class="flex items-center gap-3 p-3 hover:bg-red-50 text-red-500 rounded-xl transition font-bold text-sm"><i class="fa-solid fa-trash-can w-5"></i> Hapus</button>
         </div>
     </div>
 </div>
 
 <div class="flex w-full h-full relative" id="app-container" style="display: none;">
 
-    <div class="w-full md:w-20 bg-[#0f172a] border-t md:border-t-0 md:border-r border-slate-800 flex md:flex-col items-center justify-around md:justify-start md:py-6 md:gap-4 absolute md:relative bottom-0 z-40 h-[65px] md:h-full shrink-0 px-2 md:px-0 overflow-x-auto hide-scroll">
+    <div class="w-full md:w-20 bg-[#0f172a] border-t md:border-t-0 md:border-r border-slate-800 flex md:flex-col items-center justify-around md:justify-start md:py-6 md:gap-4 absolute md:relative bottom-0 z-40 h-[60px] md:h-full shrink-0 px-2 md:px-0 overflow-x-auto hide-scroll">
         
-        <button onclick="openModal('ttdl-modal')" title="TikTok Downloader" class="w-11 h-11 rounded-xl bg-white/10 text-white hover:bg-pink-500 flex items-center justify-center transition shrink-0"><i class="fa-brands fa-tiktok"></i></button>
-        <button onclick="showToast('Fitur Device Active!', 'success')" title="Info Device" class="w-11 h-11 rounded-xl bg-white/10 text-white hover:bg-blue-500 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-mobile-screen"></i></button>
-        <button onclick="showLogin(true)" title="Tambah Bot" class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
+        <button onclick="showTools('dezzbgram')" title="Info Web" class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg flex items-center justify-center transition shrink-0"><i class="fa-solid fa-bolt"></i></button>
+        <button onclick="showTools('broadcast')" title="Broadcast" class="w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-emerald-500 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-bullhorn"></i></button>
+        <button onclick="showTools('ttdl')" title="TikTok Downloader" class="w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-pink-500 flex items-center justify-center transition shrink-0"><i class="fa-brands fa-tiktok"></i></button>
+        <button onclick="showTools('device')" title="Info Device" class="w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-indigo-500 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-mobile-screen"></i></button>
+        <button onclick="showTools('login')" title="Tambah Bot" class="w-10 h-10 rounded-xl bg-white/10 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
         
-        <div class="hidden md:block w-8 h-px bg-white/20 my-2"></div><div class="md:hidden h-8 w-px bg-white/20 mx-2"></div>
+        <div class="hidden md:block w-8 h-px bg-white/20 my-1"></div><div class="md:hidden h-6 w-px bg-white/20 mx-1"></div>
         
-        <div id="bot-list-container" class="flex md:flex-col gap-3 md:gap-4 shrink-0"></div>
+        <div id="bot-list-container" class="flex md:flex-col gap-3 shrink-0"></div>
     </div>
 
-    <div id="sidebar" class="w-full md:w-[320px] bg-white border-r border-gray-200 flex flex-col absolute md:relative z-20 h-[calc(100%-65px)] md:h-full shrink-0 transform translate-x-0 transition-transform duration-300">
+    <div id="sidebar" class="w-full md:w-[320px] bg-white border-r border-gray-200 flex flex-col absolute md:relative z-20 h-[calc(100%-60px)] md:h-full shrink-0 transform translate-x-0 transition-transform duration-300">
         <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-white shadow-sm shrink-0">
             <div>
-                <h2 class="text-lg font-bold text-gray-900">Chats</h2>
-                <p id="bot-name-display" class="text-xs text-blue-600 font-medium">@Loading...</p>
+                <h2 class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-400">DezzBGram</h2>
+                <p id="bot-name-display" class="text-xs text-gray-500 font-medium">@Loading...</p>
             </div>
-            <button onclick="confirmLogoutBot()" title="Hapus Bot" class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-power-off"></i></button>
+            <button onclick="confirmLogoutBot()" title="Logout Bot" class="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-power-off"></i></button>
         </div>
-        <div id="chat-list" class="flex-1 overflow-y-auto hide-scroll p-3 space-y-1.5 bg-slate-50"></div>
+        <div id="chat-list" class="flex-1 overflow-y-auto hide-scroll p-2 space-y-1 bg-slate-50"></div>
     </div>
 
-    <div id="chat-area" class="w-full absolute md:relative z-30 h-[calc(100%-65px)] md:h-full bg-[#f0f2f5] flex flex-col transform translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div id="chat-area" class="w-full absolute md:relative z-30 h-[calc(100%-60px)] md:h-full bg-[#e4e4e7] flex flex-col transform translate-x-full md:translate-x-0 transition-transform duration-300">
         
         <div class="h-[65px] border-b border-gray-200 flex items-center px-4 glass shrink-0 z-10">
             <button onclick="closeMobileChat()" class="md:hidden mr-3 w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-95"><i class="fa-solid fa-arrow-left"></i></button>
             <img id="header-avatar" src="https://ui-avatars.com/api/?name=U" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200 bg-white">
             <div class="flex-1 overflow-hidden">
                 <h3 id="header-name" class="font-bold text-gray-900 truncate text-[15px]">Pilih Chat</h3>
-                <p class="text-[11px] text-green-600 font-medium flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Sistem Aktif</p>
+                <p id="header-sub" class="text-[11px] text-green-600 font-medium truncate">Online</p>
             </div>
         </div>
 
         <div id="messages-container" class="flex-1 overflow-y-auto hide-scroll p-4 md:p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] relative"></div>
 
-        <div class="bg-white p-3 md:p-4 shrink-0 shadow-[0_-5px_15px_rgba(0,0,0,0.03)] z-10">
-            <div id="reply-indicator" class="hidden items-center justify-between bg-gray-50 border-l-4 border-blue-500 p-2 rounded-lg mb-2">
-                <div class="overflow-hidden"><p class="text-[10px] font-bold text-blue-600 mb-0.5">Membalas:</p><p id="reply-text-ui" class="text-xs text-gray-600 truncate">...</p></div>
-                <button onclick="cancelReply()" class="w-6 h-6 rounded-full bg-gray-200 hover:text-red-500 flex items-center justify-center"><i class="fa-solid fa-xmark text-xs"></i></button>
+        <div class="bg-white shrink-0 shadow-[0_-5px_15px_rgba(0,0,0,0.03)] z-10 flex flex-col">
+            
+            <div class="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border-b border-gray-200 overflow-x-auto hide-scroll">
+                <button onclick="formatText('b')" class="w-7 h-7 rounded hover:bg-gray-200 font-bold text-sm">B</button>
+                <button onclick="formatText('i')" class="w-7 h-7 rounded hover:bg-gray-200 italic font-serif text-sm">I</button>
+                <button onclick="formatText('s')" class="w-7 h-7 rounded hover:bg-gray-200 line-through text-sm">S</button>
+                <button onclick="formatText('code')" class="w-7 h-7 rounded hover:bg-gray-200 font-mono text-xs bg-gray-100 border">&lt;&gt;</button>
+                <button onclick="formatText('pre')" class="px-2 h-7 rounded hover:bg-gray-200 font-mono text-[10px] bg-gray-100 border">Block</button>
+            </div>
+
+            <div id="action-indicator" class="hidden items-center justify-between bg-blue-50/50 border-l-4 border-blue-500 p-2 mx-3 mt-2 rounded">
+                <div class="overflow-hidden">
+                    <p id="action-label" class="text-[10px] font-bold text-blue-600 mb-0.5">Membalas:</p>
+                    <p id="action-text-ui" class="text-xs text-gray-600 truncate">...</p>
+                </div>
+                <button onclick="cancelAction()" class="w-6 h-6 rounded-full hover:bg-gray-200 text-gray-500 flex justify-center items-center"><i class="fa-solid fa-xmark text-xs"></i></button>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 p-2 md:p-3">
                 <button onclick="document.getElementById('fileUpload').click()" class="w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-paperclip"></i></button>
                 <input type="file" id="fileUpload" class="hidden" accept="image/*,audio/*,video/*" onchange="handleFileUpload()">
                 
-                <div class="flex-1 bg-gray-100 rounded-full flex items-center px-4 py-1.5 focus-within:ring-2 focus-within:ring-blue-200 focus-within:bg-white transition border border-transparent focus-within:border-blue-300">
-                    <input type="text" id="msgInput" placeholder="Ketik pesan..." class="w-full bg-transparent border-none focus:ring-0 py-1.5 outline-none text-[15px]" onkeypress="if(event.key === 'Enter') kirimPesan()">
+                <div class="flex-1 bg-gray-100 rounded-2xl flex items-center px-3 py-1 focus-within:ring-2 focus-within:ring-blue-300 transition">
+                    <textarea id="msgInput" rows="1" placeholder="Ketik pesan (HTML supported)..." class="w-full bg-transparent border-none focus:ring-0 py-2 outline-none text-[14.5px] resize-none hide-scroll" style="min-height: 40px; max-height: 100px;"></textarea>
                 </div>
                 
-                <button onclick="kirimPesan()" class="w-11 h-11 rounded-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shadow-md active:scale-95 shrink-0 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                <button id="send-btn" onclick="kirimPesan()" class="w-11 h-11 rounded-full bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shadow-md active:scale-95 shrink-0 transition"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CUSTOM TOAST & CONFIRM (PENGGANTI ALERT) ---
+    // --- UTILS & TOAST ---
     function showToast(msg, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const bg = type === 'success' ? 'bg-green-600' : 'bg-red-600';
-        const icon = type === 'success' ? 'fa-check-circle' : 'fa-circle-xmark';
-        
-        const toast = document.createElement('div');
-        toast.className = `${bg} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 toast-enter pointer-events-auto`;
-        toast.innerHTML = `<i class="fa-solid ${icon}"></i><span class="text-sm font-medium">${msg}</span>`;
-        
-        container.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-10px)'; toast.style.transition = 'all 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `${type==='success'?'bg-emerald-600':'bg-red-600'} text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 toast-enter`;
+        t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':'fa-xmark'}"></i><span class="text-xs font-medium">${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(100%)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 2500);
     }
 
-    let confirmCallback = null;
-    function openConfirm(title, desc, callback) {
-        document.getElementById('confirm-title').innerText = title;
-        document.getElementById('confirm-desc').innerText = desc;
-        confirmCallback = callback;
-        document.getElementById('custom-confirm').style.display = 'flex';
+    function openModalGen(htmlContent) {
+        document.getElementById('general-modal-content').innerHTML = htmlContent;
+        document.getElementById('general-modal').classList.remove('hidden');
     }
-    function closeConfirm() { document.getElementById('custom-confirm').style.display = 'none'; confirmCallback = null; }
-    document.getElementById('confirm-yes-btn').onclick = () => { if(confirmCallback) confirmCallback(); closeConfirm(); };
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function closeGenModal() { closeModal('general-modal'); }
 
     // --- STATE MANAGEMENT ---
-    let bots = JSON.parse(localStorage.getItem('sys_bots')) || []; 
-    let activeToken = localStorage.getItem('sys_active_token') || '';
-    let chatsData = {}; 
-    let activeChatId = null;
-    let pollingInterval = null;
-    let selectedMsgId = null; let selectedMsgText = ""; let replyToMsgId = null;
+    let bots = JSON.parse(localStorage.getItem('dz_bots')) || []; 
+    let activeToken = localStorage.getItem('dz_active') || '';
+    let chatsData = {}; let activeChatId = null; let pollingInterval = null;
+    let selectedMsgId = null; let selectedMsgText = ""; let selectedMsgType = "text"; let selectedMsgSender = "";
+    let replyToMsgId = null; let editMsgId = null;
 
-    window.onload = () => {
-        if (bots.length === 0 || !activeToken) document.getElementById('login-modal').style.display = 'flex';
-        else inisialisasiSistem();
-    };
-
-    function showLogin(isAdd) {
-        document.getElementById('login-modal').style.display = 'flex';
-        document.getElementById('close-login-btn').style.display = isAdd ? 'block' : 'none';
-    }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    window.onload = () => { if (bots.length === 0 || !activeToken) showTools('login'); else initApp(); };
 
     async function tgApi(method, payload = {}, isFormData = false) {
         let opt = { method: 'POST' };
@@ -198,233 +163,288 @@
         catch (e) { return {ok: false}; }
     }
 
-    // --- LOGIN ---
-    async function tambahBot() {
-        let token = document.getElementById('tokenInput').value.trim();
-        if(!token) return showToast('Token wajib diisi!', 'error');
-        if(bots.find(b => b.token === token)) return showToast('Bot ini udah login!', 'error');
-
-        document.getElementById('login-btn').innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading...`;
-        try {
-            let res = await fetch(`https://api.telegram.org/bot${token}/getMe`); let data = await res.json();
-            if (data.ok) {
-                bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${data.result.first_name}&background=2563eb&color=fff`});
-                localStorage.setItem('sys_bots', JSON.stringify(bots)); localStorage.setItem('sys_active_token', token);
-                location.reload(); 
-            } else showToast('Token tidak valid!', 'error');
-        } catch(e) { showToast('Gagal terhubung ke Telegram', 'error'); }
-    }
-
-    function inisialisasiSistem() {
+    // --- INIT APP ---
+    function initApp() {
         document.getElementById('app-container').style.display = 'flex';
-        let activeBot = bots.find(b => b.token === activeToken);
-        document.getElementById('bot-name-display').innerText = `@${activeBot.username}`;
-        chatsData = JSON.parse(localStorage.getItem(`sys_chats_${activeBot.id}`)) || {};
-        
+        let bot = bots.find(b => b.token === activeToken);
+        if(!bot) return; // Failsafe
+        document.getElementById('bot-name-display').innerText = `@${bot.username}`;
+        chatsData = JSON.parse(localStorage.getItem(`dz_chats_${bot.id}`)) || {};
         renderNavRail(); renderSidebar(); startPolling();
     }
 
     function renderNavRail() {
-        let container = document.getElementById('bot-list-container'); container.innerHTML = '';
-        bots.forEach(bot => {
-            let isActive = bot.token === activeToken;
-            let cls = isActive ? 'border-2 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-110' : 'opacity-60 hover:opacity-100';
-            container.innerHTML += `<img src="${bot.avatar}" title="${bot.name}" onclick="localStorage.setItem('sys_active_token', '${bot.token}'); location.reload();" class="w-11 h-11 rounded-xl object-cover cursor-pointer transition-all duration-200 ${cls}">`;
+        let c = document.getElementById('bot-list-container'); c.innerHTML = '';
+        bots.forEach(b => {
+            let active = b.token === activeToken ? 'border-2 border-white scale-110 shadow-lg' : 'opacity-60';
+            c.innerHTML += `<img src="${b.avatar}" onclick="localStorage.setItem('dz_active', '${b.token}'); location.reload();" class="w-10 h-10 rounded-xl object-cover cursor-pointer transition-all ${active}">`;
         });
     }
 
+    // --- TOOLS MENU MODALS ---
+    function showTools(type) {
+        let html = '';
+        if(type === 'login') {
+            html = `<h2 class="text-xl font-bold mb-4">Login Bot</h2>
+                    <input type="password" id="i-token" class="w-full p-3 bg-gray-50 border rounded-xl mb-3 text-sm" placeholder="Token Bot...">
+                    <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl mb-2">Masuk</button>
+                    ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-xl">Batal</button>` : ''}`;
+        } else if(type === 'device') {
+            html = `<h2 class="text-xl font-bold mb-4">📱 Info Device</h2>
+                    <div class="text-left bg-gray-50 p-4 rounded-xl text-sm space-y-2 border">
+                    <p><b>OS:</b> ${navigator.platform}</p><p><b>Browser:</b> ${navigator.userAgent.split(' ')[0]}</p>
+                    <p><b>Layar:</b> ${window.innerWidth}x${window.innerHeight}</p></div>
+                    <button onclick="closeGenModal()" class="w-full mt-4 bg-red-50 text-red-500 py-2 rounded-xl font-bold">Tutup</button>`;
+        } else if(type === 'ttdl') {
+            html = `<h2 class="text-xl font-bold mb-2"><i class="fa-brands fa-tiktok"></i> TikTok DL</h2>
+                    <p class="text-xs text-gray-500 mb-4">Video dikirim ke chat aktif (No Watermark)</p>
+                    <input type="text" id="i-tt" class="w-full p-3 bg-gray-50 border rounded-xl mb-3 text-sm" placeholder="Paste link TikTok...">
+                    <button onclick="prosesTTDL()" class="w-full bg-black text-white font-bold py-3 rounded-xl mb-2">Download</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-2 rounded-xl">Batal</button>`;
+        } else if(type === 'broadcast') {
+            html = `<h2 class="text-xl font-bold mb-4">📢 Broadcast</h2>
+                    <textarea id="i-bc" rows="3" class="w-full p-3 bg-gray-50 border rounded-xl mb-3 text-sm outline-none" placeholder="Pesan broadcast (HTML supported)..."></textarea>
+                    <button onclick="prosesBC()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl mb-2">Kirim ke Semua</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-2 rounded-xl">Batal</button>`;
+        } else if(type === 'dezzbgram') {
+            html = `<div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl"><i class="fa-solid fa-bolt"></i></div>
+                    <h2 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-sky-400">DezzBGram</h2>
+                    <p class="text-sm text-gray-500 font-bold mb-4">Version 8.0 Ultimate</p>
+                    <div class="text-xs text-gray-400 text-left bg-gray-50 p-3 rounded-lg mb-4">Build: HTML/Tailwind/VanillaJS<br>Features: MultiBot, SwipeReply, Markdown, TTDL, ServiceMsg</div>
+                    <button onclick="window.location.href='dev.html'" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl mb-2"><i class="fa-solid fa-code"></i> Halaman Developer</button>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-2 rounded-xl font-bold">Kembali</button>`;
+        } else if(type === 'forward') {
+            let listHTML = Object.values(chatsData).map(c => `<div onclick="executeForward('${c.id}', true)" class="flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer"><img src="${c.avatar||`https://ui-avatars.com/api/?name=${c.name}`}" class="w-8 h-8 rounded-full mr-3"><span class="text-sm font-medium truncate">${c.name}</span></div>`).join('');
+            html = `<h2 class="text-lg font-bold mb-3">Teruskan Pesan</h2>
+                    <div class="text-left mb-2 text-xs font-bold text-gray-500">Pilih Mode:</div>
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-blue-600 text-white py-1.5 rounded-lg text-xs font-bold transition">Forward Asli</button>
+                        <button onclick="setFwdMode(true)" id="btn-fwd-copy" class="flex-1 bg-gray-200 text-gray-600 py-1.5 rounded-lg text-xs font-bold transition">No Sender (Copy)</button>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto border p-1 rounded-lg mb-3">${listHTML}</div>
+                    <button onclick="closeGenModal()" class="w-full bg-gray-100 py-2 rounded-xl font-bold">Batal</button>`;
+        }
+        openModalGen(html);
+    }
+
+    // --- TOOL ACTIONS ---
+    async function prosesLogin() {
+        let token = document.getElementById('i-token').value.trim(); if(!token) return showToast('Isi token!', 'error');
+        let res = await fetch(`https://api.telegram.org/bot${token}/getMe`); let data = await res.json();
+        if(data.ok) {
+            bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${data.result.first_name}&background=0ea5e9&color=fff`});
+            localStorage.setItem('dz_bots', JSON.stringify(bots)); localStorage.setItem('dz_active', token); location.reload(); 
+        } else showToast('Token invalid!', 'error');
+    }
+    
     function confirmLogoutBot() {
-        openConfirm('Hapus Bot', 'Yakin mau ngeluarin bot ini dari Workspace lu?', () => {
-            bots = bots.filter(b => b.token !== activeToken);
-            localStorage.setItem('sys_bots', JSON.stringify(bots));
-            if(bots.length > 0) localStorage.setItem('sys_active_token', bots[0].token);
-            else { localStorage.removeItem('sys_active_token'); localStorage.removeItem('sys_bots'); }
+        if(confirm('Hapus bot ini dari DezzBGram?')) {
+            bots = bots.filter(b => b.token !== activeToken); localStorage.setItem('dz_bots', JSON.stringify(bots));
+            if(bots.length > 0) localStorage.setItem('dz_active', bots[0].token);
+            else { localStorage.removeItem('dz_active'); localStorage.removeItem('dz_bots'); }
             location.reload();
-        });
+        }
     }
 
-    // --- RENDER SIDEBAR ---
+    async function prosesTTDL() {
+        if(!activeChatId) return showToast('Pilih chat dulu bang!', 'error');
+        let url = document.getElementById('i-tt').value; if(!url.includes('tiktok.com')) return showToast('Link salah', 'error');
+        showToast('Sedang mendownload TikTok...'); closeGenModal();
+        try {
+            let r = await fetch(`https://tikwm.com/api/?url=${url}`); let d = await r.json();
+            if(d.code===0 && d.data.play) {
+                let s = await tgApi('sendVideo', {chat_id: activeChatId, video: d.data.play, caption: `📥 *TikTok Downloaded*\n${d.data.title}`});
+                if(s.ok) simpanPesan(activeChatId, chatsData[activeChatId].name, d.data.title, 'bot', s.result.message_id, 'video', d.data.play);
+            } else showToast('Gagal ambil video', 'error');
+        } catch(e) { showToast('Error server TikTok', 'error'); }
+    }
+
+    async function prosesBC() {
+        let txt = document.getElementById('i-bc').value; if(!txt) return; closeGenModal();
+        let cIds = Object.keys(chatsData); let c = 0;
+        for(let id of cIds) {
+            let r = await tgApi('sendMessage', {chat_id: id, text: `[BROADCAST]\n\n${txt}`, parse_mode: 'HTML'});
+            if(r.ok) { c++; simpanPesan(id, chatsData[id].name, `[BROADCAST]\n${txt}`, 'bot', r.result.message_id, 'text'); }
+        }
+        showToast(`Terkirim ke ${c} chat!`);
+    }
+
+    let isCopyFwd = true;
+    function setFwdMode(isCopy) {
+        isCopyFwd = isCopy;
+        document.getElementById('btn-fwd-copy').className = isCopy ? 'flex-1 bg-blue-600 text-white py-1.5 rounded-lg text-xs font-bold transition' : 'flex-1 bg-gray-200 text-gray-600 py-1.5 rounded-lg text-xs font-bold transition';
+        document.getElementById('btn-fwd-ori').className = !isCopy ? 'flex-1 bg-blue-600 text-white py-1.5 rounded-lg text-xs font-bold transition' : 'flex-1 bg-gray-200 text-gray-600 py-1.5 rounded-lg text-xs font-bold transition';
+    }
+    async function executeForward(targetId) {
+        closeGenModal();
+        let method = isCopyFwd ? 'copyMessage' : 'forwardMessage';
+        let res = await tgApi(method, {chat_id: targetId, from_chat_id: activeChatId, message_id: selectedMsgId});
+        if(res.ok) { showToast('Berhasil diteruskan!'); simpanPesan(targetId, chatsData[targetId].name, "[Pesan Diteruskan]", 'bot', res.result.message_id, 'text'); }
+        else showToast('Gagal teruskan', 'error');
+    }
+
+    // --- FORMAT TEXT (MARKDOWN/HTML TOOLBAR) ---
+    function formatText(tag) {
+        let input = document.getElementById('msgInput');
+        let start = input.selectionStart; let end = input.selectionEnd;
+        let text = input.value; let sel = text.substring(start, end);
+        if(!sel) sel = "teks"; // default
+        let rep = `<${tag}>${sel}</${tag}>`;
+        if(tag === 'code') rep = `<code>${sel}</code>`;
+        input.value = text.substring(0, start) + rep + text.substring(end);
+        input.focus();
+    }
+
+    // --- RENDER UI ---
     function renderSidebar() {
         const list = document.getElementById('chat-list'); list.innerHTML = '';
         let arr = Object.values(chatsData).sort((a,b) => (b.messages[b.messages.length-1]?.timestamp||0) - (a.messages[a.messages.length-1]?.timestamp||0));
         
-        arr.forEach(chat => {
-            let lastMsg = chat.messages[chat.messages.length - 1];
-            let textPreview = lastMsg ? (lastMsg.type === 'service' ? lastMsg.text : (lastMsg.type === 'photo' ? '📷 Gambar' : (lastMsg.type === 'video' ? '🎥 Video' : lastMsg.text))) : 'Belum ada obrolan';
-            let activeUI = activeChatId == chat.id ? 'bg-blue-50 border-blue-500' : 'bg-white border-transparent hover:bg-gray-50';
-            let unreadBadge = chat.unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shrink-0 ml-2">${chat.unread}</div>` : '';
+        arr.forEach(c => {
+            let last = c.messages[c.messages.length - 1];
+            let txt = last ? (last.type==='service' ? '📌 Pesan disematkan' : (last.type==='photo'?'📷 Gambar':(last.type==='audio'?'🎵 Audio':(last.type==='sticker'?'🌟 Stiker':last.text)))) : 'Belum ada obrolan';
+            let act = activeChatId == c.id ? 'bg-blue-50 border-blue-500' : 'bg-white border-transparent hover:bg-gray-50';
+            let badge = c.type !== 'private' ? `<span class="bg-indigo-100 text-indigo-600 px-1 py-0.5 rounded text-[8px] font-bold ml-1">GRUP</span>` : '';
+            let unread = c.unread > 0 ? `<div class="bg-blue-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shrink-0 ml-2">${c.unread}</div>` : '';
 
             list.innerHTML += `
-                <div class="chat-item flex items-center p-3 rounded-xl cursor-pointer shadow-sm mb-2 transition border-l-4 ${activeUI}" onclick="openChat('${chat.id}')">
-                    <img src="${chat.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}`}" class="w-12 h-12 rounded-full object-cover mr-3 border border-gray-100 shrink-0">
+                <div class="flex items-center p-2.5 rounded-xl cursor-pointer shadow-sm mb-1.5 transition border-l-4 ${act}" onclick="openChat('${c.id}')">
+                    <img src="${c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}`}" class="w-11 h-11 rounded-full object-cover mr-3 shrink-0">
                     <div class="flex-1 overflow-hidden">
-                        <div class="flex justify-between items-center mb-0.5">
-                            <h4 class="font-bold text-gray-900 text-[14px] truncate">${chat.name}</h4>
-                            ${unreadBadge}
-                        </div>
-                        <p class="text-[12px] text-gray-500 truncate">${textPreview}</p>
+                        <div class="flex justify-between items-center mb-0.5"><h4 class="font-bold text-gray-900 text-[13px] truncate">${c.name} ${badge}</h4>${unread}</div>
+                        <p class="text-[11px] text-gray-500 truncate">${txt.replace(/<[^>]*>?/gm, '')}</p>
                     </div>
-                    <button onclick="hapusObrolan('${chat.id}', event)" class="delete-chat-btn w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition ml-2 shrink-0"><i class="fa-solid fa-trash-can text-xs"></i></button>
                 </div>`;
-        });
-    }
-
-    function hapusObrolan(chatId, e) {
-        e.stopPropagation();
-        openConfirm('Hapus Riwayat', `Hapus riwayat obrolan dengan ${chatsData[chatId].name}? (Pesan di Telegram user tidak terhapus)`, () => {
-            delete chatsData[chatId];
-            let botId = bots.find(b => b.token === activeToken).id;
-            localStorage.setItem(`sys_chats_${botId}`, JSON.stringify(chatsData));
-            if(activeChatId === chatId) { closeMobileChat(); document.getElementById('messages-container').innerHTML = ''; }
-            renderSidebar(); showToast('Chat dihapus dari riwayat.');
         });
     }
 
     function openChat(chatId) {
         activeChatId = chatId; chatsData[chatId].unread = 0;
-        let botId = bots.find(b => b.token === activeToken).id;
-        localStorage.setItem(`sys_chats_${botId}`, JSON.stringify(chatsData));
-        
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
         document.getElementById('main-body').classList.add('mobile-view-chat');
         document.getElementById('header-name').innerText = chatsData[chatId].name;
         document.getElementById('header-avatar').src = chatsData[chatId].avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chatsData[chatId].name)}`;
+        document.getElementById('header-sub').innerText = chatsData[chatId].type !== 'private' ? 'Grup Obrolan' : 'Private Chat';
         renderMessages(); renderSidebar();
     }
     function closeMobileChat() { document.getElementById('main-body').classList.remove('mobile-view-chat'); activeChatId = null; renderSidebar(); }
-
     function formatTime(ts) { let d = new Date(ts); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
 
-    // --- KLIK PESAN MUNCUL MODAL AKSI ---
-    function showMsgAction(msgId, text) {
-        selectedMsgId = msgId; selectedMsgText = text;
-        document.getElementById('action-msg-preview').innerText = text ? text.substring(0,30) + "..." : "Media/File";
-        document.getElementById('msg-action-modal').style.display = 'flex';
+    // --- SWIPE TO REPLY LOGIC ---
+    let startX = 0;
+    function ts(e) { startX = e.touches[0].clientX; }
+    function tm(e, el) { 
+        let d = startX - e.touches[0].clientX; 
+        if(d > 0 && d < 60) el.style.transform = `translateX(-${d}px)`; 
+    }
+    function te(e, el, id, txt) {
+        el.style.transform = `translateX(0)`;
+        if(startX - e.changedTouches[0].clientX > 40) { showMsgAction(id, txt); actionReply(); } // Trigger reply
     }
 
-    function actionReply() {
-        closeModal('msg-action-modal'); replyToMsgId = selectedMsgId;
-        document.getElementById('reply-indicator').classList.replace('hidden', 'flex'); 
-        document.getElementById('reply-text-ui').innerText = selectedMsgText || "Media";
+    // --- MESSAGE ACTION MENU ---
+    function showMsgAction(id, txt, type, sender) {
+        selectedMsgId = id; selectedMsgText = txt; selectedMsgType = type; selectedMsgSender = sender;
+        document.getElementById('action-msg-preview').innerText = txt ? txt.replace(/<[^>]*>?/gm, '').substring(0,30) + "..." : "Media/File";
+        document.getElementById('btn-edit-msg').style.display = sender === 'bot' && type === 'text' ? 'flex' : 'none'; // Cuma bisa edit pesan bot teks
+        document.getElementById('msg-action-modal').classList.remove('hidden');
+    }
+
+    function setActionUI(label, txt) {
+        document.getElementById('action-indicator').classList.replace('hidden', 'flex'); 
+        document.getElementById('action-label').innerText = label;
+        document.getElementById('action-text-ui').innerText = txt.replace(/<[^>]*>?/gm, '');
         document.getElementById('msgInput').focus();
     }
-    function cancelReply() { replyToMsgId = null; document.getElementById('reply-indicator').classList.replace('flex', 'hidden'); }
+    function actionReply() { closeModal('msg-action-modal'); replyToMsgId = selectedMsgId; editMsgId = null; setActionUI("Membalas:", selectedMsgText||"Media"); }
+    function actionEdit() { closeModal('msg-action-modal'); editMsgId = selectedMsgId; replyToMsgId = null; document.getElementById('msgInput').value = selectedMsgText; setActionUI("Edit Pesan:", selectedMsgText); document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-check"></i>`; }
+    function actionForward() { closeModal('msg-action-modal'); showTools('forward'); }
+    function actionCopy() { closeModal('msg-action-modal'); navigator.clipboard.writeText(selectedMsgText); showToast('Teks disalin!'); }
+    
+    async function actionRepeat() {
+        closeModal('msg-action-modal');
+        let res = await tgApi('copyMessage', {chat_id: activeChatId, from_chat_id: activeChatId, message_id: selectedMsgId});
+        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, selectedMsgText, 'bot', res.result.message_id, selectedMsgType); showToast('Pesan diulang!'); }
+    }
 
-    // --- FITUR PIN DENGAN SERVICE MESSAGE (ASLI TELEGRAM STYLE) ---
     async function actionPin() {
         closeModal('msg-action-modal');
         let res = await tgApi('pinChatMessage', {chat_id: activeChatId, message_id: selectedMsgId});
         if(res.ok) {
-            showToast('Pesan berhasil disematkan!');
             let botName = bots.find(b => b.token === activeToken).name;
-            let pinText = `📌 ${botName} menyematkan pesan '${selectedMsgText.substring(0,15)}...'`;
-            // Simpan sebagai pesan service
-            simpanPesan(activeChatId, chatsData[activeChatId].name, pinText, 'bot', Date.now(), 'service');
-        } else {
-            showToast('Gagal menyematkan pesan.', 'error');
+            simpanPesan(activeChatId, chatsData[activeChatId].name, `📌 ${botName} menyematkan pesan '${selectedMsgText.replace(/<[^>]*>?/gm, '').substring(0,20)}...'`, 'bot', Date.now(), 'service');
         }
     }
 
-    function actionDelete() {
+    async function actionDelete() {
         closeModal('msg-action-modal');
-        openConfirm('Hapus Pesan', 'Yakin narik pesan ini dari Telegram?', async () => {
-            await tgApi('deleteMessage', {chat_id: activeChatId, message_id: selectedMsgId});
-            chatsData[activeChatId].messages = chatsData[activeChatId].messages.filter(m => m.id !== selectedMsgId);
-            let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`sys_chats_${botId}`, JSON.stringify(chatsData)); 
-            renderMessages(); renderSidebar(); showToast('Pesan ditarik!');
-        });
+        await tgApi('deleteMessage', {chat_id: activeChatId, message_id: selectedMsgId});
+        chatsData[activeChatId].messages = chatsData[activeChatId].messages.filter(m => m.id !== selectedMsgId);
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData)); 
+        renderMessages(); renderSidebar(); showToast('Dihapus!');
     }
 
-    function actionForward() {
-        closeModal('msg-action-modal');
-        showToast('Fitur forward segera hadir di menu ini.'); // Simplified for space
-    }
+    function cancelAction() { replyToMsgId = null; editMsgId = null; document.getElementById('action-indicator').classList.replace('flex', 'hidden'); document.getElementById('msgInput').value=''; document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;}
 
+    // --- RENDER MESSAGES (DENGAN AUDIO, STIKER & SWIPE) ---
     function renderMessages() {
         if (!activeChatId) return;
         const box = document.getElementById('messages-container'); box.innerHTML = '';
         let chat = chatsData[activeChatId];
         
-        if (chat.messages.length === 0) {
-            box.innerHTML = `<div class="flex items-center justify-center h-full"><div class="bg-black/50 text-white text-xs px-4 py-2 rounded-full backdrop-blur-sm">Mulai obrolan sekarang</div></div>`;
-            return;
-        }
-
         chat.messages.forEach(msg => {
-            // JIKA PESAN SERVICE (KAYAK PIN)
-            if (msg.type === 'service') {
-                box.innerHTML += `<div class="flex justify-center my-3"><div class="bg-gray-400/30 text-gray-700 text-[11px] px-3 py-1.5 rounded-full font-medium backdrop-blur-sm shadow-sm">${msg.text}</div></div>`;
-                return;
-            }
+            if (msg.type === 'service') { box.innerHTML += `<div class="flex justify-center my-2"><div class="bg-gray-400/20 text-gray-700 text-[10px] px-3 py-1 rounded-full font-bold backdrop-blur-sm">${msg.text}</div></div>`; return; }
 
             let isUser = msg.sender === 'user';
-            let alignClass = isUser ? 'items-start' : 'items-end';
-            let bubbleClass = isUser ? 'chat-user' : 'chat-bot';
+            let alignCls = isUser ? 'items-start' : 'items-end';
+            let bubCls = isUser ? 'chat-user' : 'chat-bot';
             
-            let replyHtml = msg.replyToText ? `<div class="bg-black/10 border-l-2 border-black/30 p-1.5 rounded mb-1.5 text-[10px] opacity-90"><span class="font-bold">Balasan:</span> ${msg.replyToText}</div>` : '';
+            // Nama pengirim untuk grup
+            let senderName = (chat.type !== 'private' && isUser && msg.realSender) ? `<div class="text-[10px] font-black text-blue-500 mb-1 leading-none tracking-wide">${msg.realSender}</div>` : '';
+            let replyHtml = msg.replyToText ? `<div class="bg-black/10 border-l-2 border-black/30 p-1.5 rounded mb-1.5 text-[10px] opacity-90 truncate max-w-full"><span class="font-bold">Balasan:</span> ${msg.replyToText.replace(/<[^>]*>?/gm, '')}</div>` : '';
+            
+            // Media Render
             let mediaHtml = '';
             if(msg.type === 'photo') mediaHtml = `<img src="${msg.mediaUrl}" class="rounded-lg mb-2 max-w-[200px]">`;
             if(msg.type === 'video') mediaHtml = `<video src="${msg.mediaUrl}" controls class="rounded-lg mb-2 max-w-[200px]"></video>`;
-            
-            let safeText = (msg.text || '').replace(/'/g, "\\'");
+            if(msg.type === 'audio') mediaHtml = `<audio src="${msg.mediaUrl}" controls class="h-8 max-w-[200px] mb-1 outline-none"></audio>`;
+            if(msg.type === 'sticker') mediaHtml = `<img src="${msg.mediaUrl}" class="w-32 h-32 mb-1 drop-shadow-md">`; // Stiker
 
+            let safeText = (msg.text || '').replace(/'/g, "\\'"); // Buat parameter function
+            
+            // Tampilan Teks (Bisa render HTML karena format text)
+            let txtHtml = msg.text ? `<div class="text-[14.5px] leading-relaxed break-words" style="word-wrap: anywhere;">${msg.text}</div>` : '';
+
+            // Bubble dgn Swipe To Reply (Khusus di HP)
             box.innerHTML += `
-                <div class="msg-wrapper flex flex-col ${alignClass} w-full mb-1.5">
-                    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl ${bubbleClass} cursor-pointer active:scale-[0.98] transition-transform" onclick="showMsgAction(${msg.id}, '${safeText}')">
-                        ${replyHtml} ${mediaHtml} <p class="whitespace-pre-wrap text-[14.5px] leading-relaxed">${msg.text}</p>
-                        <span class="text-[9px] opacity-70 float-right ml-4 mt-1.5 font-medium">${formatTime(msg.timestamp)}</span>
+                <div class="flex flex-col ${alignCls} w-full mb-1.5 overflow-hidden">
+                    <div class="swipe-bubble max-w-[85%] px-3 py-2 rounded-2xl ${bubCls} cursor-pointer active:scale-[0.98]" 
+                         ontouchstart="ts(event)" ontouchmove="tm(event, this)" ontouchend="te(event, this, ${msg.id}, '${safeText}')" 
+                         onclick="showMsgAction(${msg.id}, '${safeText}', '${msg.type}', '${msg.sender}')">
+                        ${senderName} ${replyHtml} ${mediaHtml} ${txtHtml}
+                        <div class="text-[9px] opacity-70 text-right mt-1 font-medium">${formatTime(msg.timestamp)}</div>
                     </div>
                 </div>`;
         });
         setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
     }
 
-    // --- TIKTOK DOWNLOADER (TTDL) ---
-    async function prosesTTDL() {
-        let url = document.getElementById('tt-url').value.trim();
-        let btn = document.getElementById('tt-btn');
-        if(!activeChatId) return showToast('Buka chat dulu bang buat nerima videonya!', 'error');
-        if(!url.includes('tiktok.com')) return showToast('Link TikTok ga valid!', 'error');
-
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Downloading...`;
-        try {
-            let res = await fetch(`https://tikwm.com/api/?url=${url}`);
-            let data = await res.json();
-            
-            if(data.code === 0 && data.data.play) {
-                closeModal('ttdl-modal');
-                showToast('Video TikTok berhasil didapat, sedang mengirim ke chat...');
-                
-                let sendRes = await tgApi('sendVideo', {chat_id: activeChatId, video: data.data.play, caption: `🎬 *TikTok Downloader*\n\n${data.data.title}`});
-                if(sendRes.ok) {
-                    simpanPesan(activeChatId, chatsData[activeChatId].name, data.data.title, 'bot', sendRes.result.message_id, 'video', data.data.play);
-                    showToast('Video terkirim!');
-                } else showToast('Gagal mengirim video via Telegram', 'error');
-            } else { showToast('Gagal narik video TikTok. Mungkin private.', 'error'); }
-        } catch(e) { showToast('Error server TikTok Downloader', 'error'); }
-        finally { btn.innerHTML = `Download`; document.getElementById('tt-url').value = ''; }
-    }
-
     // --- SIMPAN & POLLING ---
-    function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl='', replyText=null) {
-        if (!chatsData[chatId]) chatsData[chatId] = { id: chatId, name: nama, unread: 0, avatar: '', messages: [] };
-        else chatsData[chatId].name = nama;
+    function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl='', replyText=null, chatType='private', realSender=null) {
+        if (!chatsData[chatId]) chatsData[chatId] = { id: chatId, name: nama, type: chatType, unread: 0, avatar: '', messages: [] };
+        else { chatsData[chatId].name = nama; chatsData[chatId].type = chatType; }
         if (sender === 'user' && activeChatId !== chatId) chatsData[chatId].unread = (chatsData[chatId].unread || 0) + 1;
         
-        chatsData[chatId].messages.push({ id: msgId, text, sender, type, mediaUrl, replyToText: replyText, timestamp: Date.now() });
-        let botId = bots.find(b => b.token === activeToken).id;
-        localStorage.setItem(`sys_chats_${botId}`, JSON.stringify(chatsData));
-        
+        chatsData[chatId].messages.push({ id: msgId, text, sender, type, mediaUrl, replyToText: replyText, realSender, timestamp: Date.now() });
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
         renderSidebar(); if (activeChatId == chatId) renderMessages();
         
-        // Setup Avatar Otomatis
         if(sender === 'user' && !chatsData[chatId].avatar) {
             tgApi('getUserProfilePhotos', { user_id: chatId, limit: 1 }).then(async res => {
                 if (res.ok && res.result.total_count > 0) {
                     let fRes = await tgApi('getFile', { file_id: res.result.photos[0][0].file_id });
-                    if(fRes.ok) {
-                        chatsData[chatId].avatar = `https://api.telegram.org/file/bot${activeToken}/${fRes.result.file_path}`;
-                        localStorage.setItem(`sys_chats_${botId}`, JSON.stringify(chatsData)); renderSidebar();
-                    }
+                    if(fRes.ok) { chatsData[chatId].avatar = `https://api.telegram.org/file/bot${activeToken}/${fRes.result.file_path}`;
+                        localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData)); renderSidebar(); }
                 }
             });
         }
@@ -444,13 +464,19 @@
                         let msg = update.message; let type = 'text'; let mediaUrl = ''; let teks = msg.text || msg.caption || '';
                         let chatName = msg.chat.type === 'private' ? msg.from.first_name : msg.chat.title;
 
-                        if (msg.photo) {
-                            type = 'photo';
-                            let fRes = await tgApi('getFile', {file_id: msg.photo[msg.photo.length - 1].file_id});
+                        // Media Extraction
+                        let fileId = null;
+                        if (msg.photo) { type = 'photo'; fileId = msg.photo[msg.photo.length - 1].file_id; }
+                        else if (msg.audio || msg.voice) { type = 'audio'; fileId = msg.audio ? msg.audio.file_id : msg.voice.file_id; }
+                        else if (msg.sticker) { type = 'sticker'; fileId = msg.sticker.file_id; teks = msg.sticker.emoji || 'Stiker'; }
+
+                        if(fileId) {
+                            let fRes = await tgApi('getFile', {file_id: fileId});
                             if(fRes.ok) mediaUrl = `https://api.telegram.org/file/bot${activeToken}/${fRes.result.file_path}`;
                         }
+                        
                         let replyTxt = msg.reply_to_message ? (msg.reply_to_message.text || 'Media') : null;
-                        simpanPesan(msg.chat.id.toString(), chatName, teks, 'user', msg.message_id, type, mediaUrl, replyTxt);
+                        simpanPesan(msg.chat.id.toString(), chatName, teks, 'user', msg.message_id, type, mediaUrl, replyTxt, msg.chat.type, msg.from.first_name);
                     }
                 }
             }
@@ -460,27 +486,42 @@
     // --- KIRIM FILE & PESAN ---
     async function handleFileUpload() {
         let f = document.getElementById('fileUpload').files[0]; if (!f || !activeChatId) return;
-        let isVid = f.type.startsWith('video/'); let method = isVid ? 'sendVideo' : 'sendPhoto';
-        let param = isVid ? 'video' : 'photo';
+        let isVid = f.type.startsWith('video/'); let isAud = f.type.startsWith('audio/');
+        let method = isVid ? 'sendVideo' : (isAud ? 'sendAudio' : 'sendPhoto');
+        let param = isVid ? 'video' : (isAud ? 'audio' : 'photo');
         let fd = new FormData(); fd.append('chat_id', activeChatId); fd.append(param, f);
         if(replyToMsgId) fd.append('reply_to_message_id', replyToMsgId);
         
-        showToast('Mengirim file...', 'success');
+        showToast('Mengirim file...');
         let res = await tgApi(method, fd, true);
-        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, isVid?'video':'photo', URL.createObjectURL(f), null); cancelReply(); }
+        if(res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, isVid?'video':(isAud?'audio':'photo'), URL.createObjectURL(f), null); cancelAction(); }
         else showToast('Gagal ngirim file', 'error');
     }
 
     async function kirimPesan() {
-        if (!activeChatId) return showToast('Pilih chat dulu bang!', 'error'); 
+        if (!activeChatId) return showToast('Pilih obrolan dulu!', 'error'); 
         let text = document.getElementById('msgInput').value.trim(); if (!text) return;
         
+        // Mode Edit
+        if(editMsgId) {
+            let res = await tgApi('editMessageText', {chat_id: activeChatId, message_id: editMsgId, text: text, parse_mode: 'HTML'});
+            if(res.ok) {
+                let msgIdx = chatsData[activeChatId].messages.findIndex(m => m.id === editMsgId);
+                if(msgIdx > -1) chatsData[activeChatId].messages[msgIdx].text = text;
+                let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
+                renderMessages(); cancelAction(); showToast('Pesan diedit!');
+            } else showToast('Gagal edit', 'error');
+            return;
+        }
+
+        // Mode Normal Send
         document.getElementById('msgInput').value = ''; 
-        let payload = { chat_id: activeChatId, text: text }; if(replyToMsgId) payload.reply_to_message_id = replyToMsgId;
+        let payload = { chat_id: activeChatId, text: text, parse_mode: 'HTML' }; 
+        if(replyToMsgId) payload.reply_to_message_id = replyToMsgId;
         
         let res = await tgApi('sendMessage', payload);
-        if (res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, text, 'bot', res.result.message_id, 'text', '', replyToMsgId ? 'Membalas...' : null); cancelReply(); }
-        else showToast('Gagal mengirim pesan', 'error');
+        if (res.ok) { simpanPesan(activeChatId, chatsData[activeChatId].name, text, 'bot', res.result.message_id, 'text', '', replyToMsgId ? document.getElementById('action-text-ui').innerText : null); cancelAction(); }
+        else showToast('Gagal ngirim', 'error');
     }
 </script>
 </body>
