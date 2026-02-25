@@ -9,119 +9,122 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
         
-        /* Modal & Layar Login */
+        /* Modal General */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .modal-content img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 15px; }
-        .modal-content h3 { margin: 0 0 5px 0; }
-        .modal-content p { margin: 0 0 15px 0; color: var(--text-muted); font-size: 14px; }
-        .btn-close { background: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; width: 100%; }
+        .modal-content input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; }
+        .btn-close { background: #ff4d4d; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 48%; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 48%; }
 
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
         #login-screen input, #login-screen button { width: 90%; max-width: 300px; padding: 14px; margin: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
-        #login-screen button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        #login-screen button { background: var(--primary); color: white; border: none; font-weight: bold; }
 
-        /* Layout Utama Aplikasi */
         #app { display: none; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; height: 100%; background: white; }
         
-        /* Sidebar Kiri */
-        .sidebar { width: 35%; min-width: 300px; max-width: 420px; background: var(--sidebar); border-right: 1px solid #dfe1e5; display: flex; flex-direction: column; transition: transform 0.3s ease; }
+        /* Sidebar */
+        .sidebar { width: 35%; min-width: 300px; background: var(--sidebar); border-right: 1px solid #dfe1e5; display: flex; flex-direction: column; transition: transform 0.3s ease; }
         .sidebar-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dfe1e5; }
-        .sidebar-header h3 { margin: 0; font-size: 18px; color: var(--text-dark); }
+        .btn-icon { background: none; border: none; cursor: pointer; font-size: 20px; }
         .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; transition: background 0.2s; }
+        .chat-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; }
         .chat-item:hover, .chat-item.active { background: #f4f4f5; }
-        .avatar { width: 48px; height: 48px; border-radius: 50%; margin-right: 15px; flex-shrink: 0; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #ccc; }
         .chat-info { flex: 1; overflow: hidden; }
-        .chat-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .chat-name { font-weight: 600; font-size: 15px; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-time { font-size: 12px; color: var(--text-muted); }
+        .chat-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-preview { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Area Chat Kanan */
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5 url('https://www.transparenttextures.com/patterns/cubes.png'); position: relative; }
+        /* Chat Area */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; position: relative; }
         .chat-header { padding: 10px 20px; background: white; border-bottom: 1px solid #dfe1e5; display: flex; align-items: center; height: 60px; z-index: 10; cursor: pointer; }
-        .chat-header:hover { background: #f4f4f5; }
-        .back-btn { display: none; margin-right: 15px; background: none; border: none; font-size: 24px; color: var(--primary); cursor: pointer; padding: 0; }
-        .chat-header .avatar { width: 40px; height: 40px; }
-        .header-text { flex: 1; display: flex; flex-direction: column; }
-        .header-name { font-weight: 600; font-size: 16px; color: var(--text-dark); }
-        .header-status { font-size: 13px; color: var(--primary); }
+        .back-btn { display: none; margin-right: 15px; background: none; border: none; font-size: 24px; color: var(--primary); }
+        .header-text { flex: 1; }
+        .header-name { font-weight: 600; font-size: 16px; }
 
+        /* Messages */
         .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg-bubble { max-width: 75%; padding: 8px 12px; border-radius: 12px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
-        .msg-user { background: var(--msg-user); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .msg-bot { background: var(--msg-bot); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .msg-time { font-size: 11px; color: #687a86; float: right; margin: 6px 0 -4px 10px; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; }
+        .msg-wrapper.bot { align-self: flex-end; }
+        .msg-wrapper.user { align-self: flex-start; }
+        .msg-bubble { padding: 8px 12px; border-radius: 12px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; cursor: pointer; }
+        .msg-wrapper.user .msg-bubble { background: var(--msg-user); border-bottom-left-radius: 4px; }
+        .msg-wrapper.bot .msg-bubble { background: var(--msg-bot); border-bottom-right-radius: 4px; }
+        .msg-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; }
+        .reply-box { background: rgba(0,0,0,0.05); border-left: 3px solid var(--primary); padding: 5px; margin-bottom: 5px; font-size: 12px; border-radius: 4px; }
+        .msg-actions { display: none; background: white; padding: 5px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); position: absolute; top: -30px; right: 0; z-index: 10; gap: 5px; }
+        .msg-wrapper:hover .msg-actions { display: flex; }
 
-        .input-area { padding: 10px 20px; background: white; display: flex; align-items: center; gap: 10px; }
-        .input-area input { flex: 1; padding: 14px 20px; border: none; border-radius: 25px; background: #f4f4f5; font-size: 15px; outline: none; }
-        .input-area button { background: var(--primary); color: white; border: none; border-radius: 50%; width: 48px; height: 48px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.1s; }
-        .input-area button:active { transform: scale(0.95); }
+        /* Input Area */
+        .input-area { padding: 10px 20px; background: white; display: flex; align-items: center; gap: 10px; flex-direction: column; }
+        .reply-indicator { display: none; width: 100%; background: #f4f4f5; padding: 10px; border-left: 4px solid var(--primary); font-size: 13px; border-radius: 4px; justify-content: space-between; }
+        .input-row { display: flex; width: 100%; gap: 10px; align-items: center; }
+        .input-row input[type="text"] { flex: 1; padding: 14px 20px; border: none; border-radius: 25px; background: #f4f4f5; outline: none; }
+        .btn-circle { background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        #empty-chat { flex: 1; display: flex; align-items: center; justify-content: center; background: white; }
-        .chip { background: rgba(0,0,0,0.05); padding: 5px 15px; border-radius: 15px; font-size: 14px; color: var(--text-muted); }
-
-        /* RESPONSIVE MOBILE */
         @media (max-width: 768px) {
-            .sidebar { width: 100%; max-width: none; position: absolute; z-index: 20; height: 100%; }
-            .chat-area { width: 100%; position: absolute; z-index: 10; height: 100%; transform: translateX(100%); transition: transform 0.3s ease; }
+            .sidebar { width: 100%; position: absolute; z-index: 20; height: 100%; }
+            .chat-area { width: 100%; position: absolute; z-index: 10; height: 100%; transform: translateX(100%); transition: transform 0.3s; }
             .back-btn { display: block; }
-            
-            /* Class ini buat animasi geser layar di HP */
             .mobile-chat-active .sidebar { transform: translateX(-30%); }
             .mobile-chat-active .chat-area { transform: translateX(0); z-index: 30; }
+            .msg-actions { display: flex; position: static; background: none; box-shadow: none; padding: 0; margin-top: 5px; justify-content: flex-end;}
+            .msg-actions button { font-size: 12px; padding: 2px 5px; }
         }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <svg viewBox="0 0 24 24" width="80" height="80" fill="#3390ec" style="margin-bottom: 20px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.99 1.27-5.61 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.05-.48-.82-.27-1.47-.42-1.42-.88.03-.24.29-.48.79-.74 3.08-1.34 5.15-2.23 6.19-2.66 2.95-1.23 3.56-1.44 3.97-1.45.09 0 .28.02.39.11.09.08.11.19.12.27-.01.06-.01.12-.02.2z"/></svg>
-    <input type="password" id="tokenInput" placeholder="Token Bot (Contoh: 1234:ABCde...)">
-    <button onclick="login()">Masuk ke Dashboard</button>
+    <h2>Login Bot</h2>
+    <input type="password" id="tokenInput" placeholder="Token Bot">
+    <button onclick="login()">Masuk</button>
 </div>
 
-<div class="overlay" id="profile-modal">
+<div class="overlay" id="bot-settings-modal">
     <div class="modal-content">
-        <img src="" id="modal-avatar" class="avatar" style="margin: 0 auto 15px; width: 80px; height: 80px;">
-        <h3 id="modal-name">Nama</h3>
-        <p id="modal-username">@username</p>
-        <p><strong>Chat ID:</strong> <span id="modal-id"></span></p>
-        <button class="btn-close" onclick="closeModal()">Tutup</button>
+        <h3>Edit Profil Bot</h3>
+        <input type="text" id="botNameInput" placeholder="Nama Bot">
+        <input type="text" id="botBioInput" placeholder="Deskripsi Singkat">
+        <p style="font-size:12px; text-align:left; margin-bottom:5px;">Ganti Foto Profil:</p>
+        <input type="file" id="botPhotoInput" accept="image/*">
+        <div style="display:flex; justify-content: space-between;">
+            <button class="btn-close" onclick="closeBotSettings()">Batal</button>
+            <button class="btn-save" onclick="saveBotSettings()">Simpan</button>
+        </div>
     </div>
 </div>
 
 <div id="app">
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3>Telegram Bot</h3>
-            <button onclick="logout()" style="background:none; border:none; color:#ff4d4d; font-weight:bold; cursor:pointer;">Keluar</button>
+            <h3>Pesan Masuk</h3>
+            <button class="btn-icon" onclick="openBotSettings()" title="Setting Bot">⚙️</button>
         </div>
         <div class="chat-list" id="chat-list"></div>
     </div>
 
-    <div id="empty-chat">
-        <span class="chip">Pilih chat untuk memulai pesan</span>
-    </div>
-
     <div class="chat-area" id="chat-area">
-        <div class="chat-header" onclick="showProfile()">
-            <button class="back-btn" onclick="event.stopPropagation(); closeMobileChat()">←</button>
-            <img src="" class="avatar" id="header-avatar">
+        <div class="chat-header">
+            <button class="back-btn" onclick="closeMobileChat()">←</button>
+            <img src="" class="avatar" id="header-avatar" style="width:40px; height:40px;">
             <div class="header-text">
                 <div class="header-name" id="header-name">Nama User</div>
-                <div class="header-status">Klik untuk info profil</div>
             </div>
         </div>
         
         <div class="messages" id="messages-container"></div>
         
         <div class="input-area">
-            <input type="text" id="msgInput" placeholder="Ketik pesan..." oninput="handleTyping()" onkeypress="if(event.key === 'Enter') kirimPesan()">
-            <button onclick="kirimPesan()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-            </button>
+            <div class="reply-indicator" id="reply-indicator">
+                <span id="reply-text">Membalas pesan...</span>
+                <button onclick="cancelReply()" style="background:none; border:none; color:red; cursor:pointer;">✖</button>
+            </div>
+            <div class="input-row">
+                <button class="btn-icon" onclick="document.getElementById('fileUpload').click()">📎</button>
+                <input type="file" id="fileUpload" style="display:none;" accept="image/*" onchange="handleFileUpload()">
+                <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key === 'Enter') kirimPesan()">
+                <button class="btn-circle" onclick="kirimPesan()">➤</button>
+            </div>
         </div>
     </div>
 </div>
@@ -129,182 +132,209 @@
 <script>
     let botToken = localStorage.getItem('botToken') || '';
     let lastUpdateId = parseInt(localStorage.getItem('lastUpdateId')) || 0;
-    let chatsData = JSON.parse(localStorage.getItem('telegramChatsData')) || {}; 
+    let chatsData = JSON.parse(localStorage.getItem('telegramDataV2')) || {}; 
     let activeChatId = null;
-    let pollingInterval;
-    let typingTimer;
+    let replyToMsgId = null;
 
-    window.onload = () => {
-        if (botToken) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            renderSidebar();
-            startPolling();
-        }
-    };
+    window.onload = () => { if (botToken) { initApp(); } };
 
     function login() {
-        botToken = document.getElementById('tokenInput').value.trim();
-        if (!botToken) return alert('Token wajib diisi!');
-        localStorage.setItem('botToken', botToken);
+        let token = document.getElementById('tokenInput').value.trim();
+        if (!token) return;
+        localStorage.setItem('botToken', token);
         location.reload();
     }
 
-    function logout() {
-        localStorage.removeItem('botToken');
-        location.reload();
+    async function initApp() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        renderSidebar();
+        startPolling();
     }
 
-    function getAvatarUrl(name) {
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&rounded=true&bold=true`;
+    // --- API TELEGRAM DIRECT ---
+    async function tgApi(method, data = {}, isFormData = false) {
+        let options = { method: 'POST' };
+        if (isFormData) { options.body = data; } 
+        else {
+            options.headers = { 'Content-Type': 'application/json' };
+            options.body = JSON.stringify(data);
+        }
+        let res = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, options);
+        return await res.json();
     }
 
-    function formatTime(timestamp) {
-        let date = new Date(timestamp);
-        return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+    // --- FITUR PROFIL USER ASLI ---
+    async function getRealUserAvatar(userId, name) {
+        try {
+            let res = await tgApi('getUserProfilePhotos', { user_id: userId, limit: 1 });
+            if (res.ok && res.result.total_count > 0) {
+                let fileId = res.result.photos[0][0].file_id;
+                let fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+                let fileData = await fileRes.json();
+                return `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+            }
+        } catch (e) {}
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
     }
 
-    // -- UI LOGIC --
+    // --- FITUR SETTING BOT (Baru di API 9.4) ---
+    function openBotSettings() { document.getElementById('bot-settings-modal').style.display = 'flex'; }
+    function closeBotSettings() { document.getElementById('bot-settings-modal').style.display = 'none'; }
+    async function saveBotSettings() {
+        let name = document.getElementById('botNameInput').value;
+        let bio = document.getElementById('botBioInput').value;
+        let file = document.getElementById('botPhotoInput').files[0];
+
+        if(name) await tgApi('setMyName', { name });
+        if(bio) await tgApi('setMyDescription', { description: bio });
+        if(file) {
+            let fd = new FormData(); fd.append('photo', file);
+            await tgApi('setMyProfilePhoto', fd, true);
+        }
+        alert('Profil Bot berhasil diupdate!');
+        closeBotSettings();
+    }
+
+    // --- RENDER UI ---
     function renderSidebar() {
-        const listContainer = document.getElementById('chat-list');
-        listContainer.innerHTML = '';
-        
-        let chatArray = Object.values(chatsData).sort((a, b) => {
-            let lastA = a.messages[a.messages.length - 1]?.timestamp || 0;
-            let lastB = b.messages[b.messages.length - 1]?.timestamp || 0;
-            return lastB - lastA;
-        });
-
-        chatArray.forEach(chat => {
+        const list = document.getElementById('chat-list');
+        list.innerHTML = '';
+        Object.values(chatsData).forEach(chat => {
             let lastMsg = chat.messages[chat.messages.length - 1];
-            let previewText = lastMsg ? (lastMsg.type === 'bot' ? 'Anda: ' + lastMsg.text : lastMsg.text) : 'Belum ada pesan';
-            let timeText = lastMsg ? formatTime(lastMsg.timestamp) : '';
-            
+            let text = lastMsg ? (lastMsg.type === 'photo' ? '📷 Gambar' : lastMsg.text) : 'Belum ada pesan';
             let div = document.createElement('div');
             div.className = `chat-item ${activeChatId == chat.id ? 'active' : ''}`;
             div.onclick = () => openChat(chat.id);
-            div.innerHTML = `
-                <img src="${getAvatarUrl(chat.name)}" class="avatar">
-                <div class="chat-info">
-                    <div class="chat-top">
-                        <div class="chat-name">${chat.name}</div>
-                        <div class="chat-time">${timeText}</div>
-                    </div>
-                    <div class="chat-preview">${previewText}</div>
-                </div>
-            `;
-            listContainer.appendChild(div);
+            div.innerHTML = `<img src="${chat.avatar || 'https://ui-avatars.com/api/?name=U'}" class="avatar">
+                             <div class="chat-info"><div class="chat-name">${chat.name}</div><div class="chat-preview">${text}</div></div>`;
+            list.appendChild(div);
         });
     }
 
     function openChat(chatId) {
         activeChatId = chatId;
-        document.getElementById('empty-chat').style.display = 'none';
-        document.getElementById('app').classList.add('mobile-chat-active'); // Animasi masuk di HP
-        
-        let chat = chatsData[chatId];
-        document.getElementById('header-name').innerText = chat.name;
-        document.getElementById('header-avatar').src = getAvatarUrl(chat.name);
-        
+        document.getElementById('app').classList.add('mobile-chat-active');
+        document.getElementById('header-name').innerText = chatsData[chatId].name;
+        document.getElementById('header-avatar').src = chatsData[chatId].avatar;
         renderMessages();
-        renderSidebar();
     }
 
     function closeMobileChat() {
         document.getElementById('app').classList.remove('mobile-chat-active');
         activeChatId = null;
-        renderSidebar();
+    }
+
+    // --- FITUR REPLY & PIN ---
+    function setReply(msgId, text) {
+        replyToMsgId = msgId;
+        document.getElementById('reply-indicator').style.display = 'flex';
+        document.getElementById('reply-text').innerText = `Membalas: ${text.substring(0,20)}...`;
+    }
+    function cancelReply() {
+        replyToMsgId = null;
+        document.getElementById('reply-indicator').style.display = 'none';
+    }
+    async function pinMsg(msgId) {
+        await tgApi('pinChatMessage', { chat_id: activeChatId, message_id: msgId });
+        alert('Pesan di-Pin di Telegram!');
     }
 
     function renderMessages() {
         if (!activeChatId) return;
-        const container = document.getElementById('messages-container');
-        container.innerHTML = '';
-        
-        let messages = chatsData[activeChatId].messages;
-        messages.forEach(msg => {
+        const box = document.getElementById('messages-container');
+        box.innerHTML = '';
+        chatsData[activeChatId].messages.forEach(msg => {
             let div = document.createElement('div');
-            div.className = `msg-bubble msg-${msg.type}`;
-            div.innerHTML = `${msg.text} <span class="msg-time">${formatTime(msg.timestamp)}</span>`;
-            container.appendChild(div);
+            div.className = `msg-wrapper ${msg.sender}`;
+            
+            let replyHTML = msg.replyToText ? `<div class="reply-box">${msg.replyToText}</div>` : '';
+            let mediaHTML = msg.type === 'photo' ? `<img src="${msg.mediaUrl}" class="msg-img">` : '';
+            
+            div.innerHTML = `
+                <div class="msg-actions">
+                    <button onclick="setReply(${msg.id}, '${msg.text || 'Gambar'}')">↩️ Reply</button>
+                    <button onclick="pinMsg(${msg.id})">📌 Pin</button>
+                </div>
+                <div class="msg-bubble">
+                    ${replyHTML}
+                    ${mediaHTML}
+                    ${msg.text}
+                </div>
+            `;
+            box.appendChild(div);
         });
-        container.scrollTop = container.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     }
 
-    // -- MODAL PROFILE --
-    function showProfile() {
-        if (!activeChatId) return;
-        let chat = chatsData[activeChatId];
-        document.getElementById('modal-avatar').src = getAvatarUrl(chat.name);
-        document.getElementById('modal-name').innerText = chat.name;
-        document.getElementById('modal-username').innerText = chat.username ? '@' + chat.username : 'Tidak ada username';
-        document.getElementById('modal-id').innerText = chat.id;
-        document.getElementById('profile-modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('profile-modal').style.display = 'none';
-    }
-
-    // -- TELEGRAM LOGIC --
-    function simpanPesan(chatId, nama, username, teks, tipe) {
-        if (!chatsData[chatId]) {
-            chatsData[chatId] = { id: chatId, name: nama, username: username, messages: [] };
-        } else {
-            // Update nama/username kalau berubah
-            chatsData[chatId].name = nama;
-            chatsData[chatId].username = username;
-        }
+    function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl, replyText = null) {
+        if (!chatsData[chatId]) chatsData[chatId] = { id: chatId, name: nama, avatar: '', messages: [] };
         
-        chatsData[chatId].messages.push({ text: teks, type: tipe, timestamp: Date.now() });
-        localStorage.setItem('telegramChatsData', JSON.stringify(chatsData));
+        chatsData[chatId].messages.push({ id: msgId, text, sender, type, mediaUrl, replyToText: replyText });
+        localStorage.setItem('telegramDataV2', JSON.stringify(chatsData));
         
         renderSidebar();
         if (activeChatId == chatId) renderMessages();
+        
+        // Ambil PP asli di background biar ga lemot
+        if(sender === 'user' && !chatsData[chatId].avatar) {
+            getRealUserAvatar(chatId, nama).then(url => {
+                chatsData[chatId].avatar = url;
+                localStorage.setItem('telegramDataV2', JSON.stringify(chatsData));
+                renderSidebar();
+            });
+        }
     }
 
+    // --- POLLING & MENERIMA GAMBAR ---
     function startPolling() {
-        pollingInterval = setInterval(async () => {
+        setInterval(async () => {
             try {
-                let res = await fetch('/api/receive', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: botToken, offset: lastUpdateId + 1 })
-                });
-                let data = await res.json();
-                
-                if (data.ok && data.result.length > 0) {
-                    data.result.forEach(update => {
+                let res = await tgApi('getUpdates', { offset: lastUpdateId + 1 });
+                if (res.ok && res.result.length > 0) {
+                    for (let update of res.result) {
                         lastUpdateId = update.update_id;
                         localStorage.setItem('lastUpdateId', lastUpdateId);
 
-                        if (update.message && update.message.text) {
-                            let chatId = update.message.chat.id;
-                            let pengirim = update.message.from.first_name + (update.message.from.last_name ? ' ' + update.message.from.last_name : '');
-                            let username = update.message.from.username || '';
-                            let teks = update.message.text;
+                        if (update.message) {
+                            let msg = update.message;
+                            let type = 'text'; let mediaUrl = '';
+                            let teks = msg.text || msg.caption || '';
                             
-                            simpanPesan(chatId, pengirim, username, teks, 'user');
+                            // Deteksi Gambar Masuk
+                            if (msg.photo) {
+                                type = 'photo';
+                                let fileId = msg.photo[msg.photo.length - 1].file_id;
+                                let fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+                                let fileData = await fileRes.json();
+                                mediaUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+                            }
+                            
+                            let replyTxt = msg.reply_to_message ? (msg.reply_to_message.text || 'Gambar') : null;
+                            simpanPesan(msg.chat.id, msg.from.first_name, teks, 'user', msg.message_id, type, mediaUrl, replyTxt);
                         }
-                    });
+                    }
                 }
             } catch (e) {}
         }, 3000);
     }
 
-    // -- FITUR TYPING --
-    function handleTyping() {
-        if (!activeChatId) return;
+    // --- KIRIM PESAN & GAMBAR ---
+    async function handleFileUpload() {
+        let file = document.getElementById('fileUpload').files[0];
+        if (!file || !activeChatId) return;
         
-        // Debounce: Biar API gak spam ditembak tiap ngetik 1 huruf
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            fetch('/api/action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: botToken, chat_id: activeChatId, action: 'typing' })
-            }).catch(e => console.log('Gagal set typing'));
-        }, 1000); // Trigger typing setiap 1 detik ngetik terus-menerus
+        let fd = new FormData();
+        fd.append('chat_id', activeChatId);
+        fd.append('photo', file);
+        if(replyToMsgId) fd.append('reply_to_message_id', replyToMsgId);
+
+        let res = await tgApi('sendPhoto', fd, true);
+        if(res.ok) {
+            // Langsung pakai object URL biar cepet nampil di web lu
+            simpanPesan(activeChatId, 'Bot', '', 'bot', res.result.message_id, 'photo', URL.createObjectURL(file));
+            cancelReply();
+        }
     }
 
     async function kirimPesan() {
@@ -313,22 +343,15 @@
         if (!text) return;
 
         document.getElementById('msgInput').value = ''; 
-        clearTimeout(typingTimer); // Stop typing kalo udah kekirim
+        
+        let payload = { chat_id: activeChatId, text: text };
+        if(replyToMsgId) payload.reply_to_message_id = replyToMsgId;
 
-        try {
-            let res = await fetch('/api/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: botToken, chat_id: activeChatId, text: text })
-            });
-            let data = await res.json();
-            
-            if (data.ok) {
-                simpanPesan(activeChatId, chatsData[activeChatId].name, chatsData[activeChatId].username, text, 'bot');
-            } else {
-                alert(`Gagal ngirim: ${data.description}`);
-            }
-        } catch (e) { alert('Jaringan error.'); }
+        let res = await tgApi('sendMessage', payload);
+        if (res.ok) {
+            simpanPesan(activeChatId, 'Bot', text, 'bot', res.result.message_id, 'text', '', replyToMsgId ? 'Membalas...' : null);
+            cancelReply();
+        }
     }
 </script>
 
