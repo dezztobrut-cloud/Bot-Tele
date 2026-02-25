@@ -3,107 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Telegram Bot Client</title>
+    <title>Telegram Bot Pro</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; margin: 0;}
-        .container { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { background-color: #0088cc; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #006699; }
-        #chat-box { height: 350px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background-color: #e5ddd5; }
-        .msg { margin-bottom: 8px; padding: 10px; border-radius: 8px; width: fit-content; max-width: 80%; font-size: 14px; }
-        .msg.user { background: white; border: 1px solid #ddd; }
-        .msg.bot { background: #dcf8c6; margin-left: auto; text-align: right; }
-        .sender-name { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; }
-        .action-btns { display: flex; gap: 5px; }
+        :root { --bg: #e6ebee; --primary: #3390ec; --sidebar: #ffffff; --chat-bg: #8ba3cb; --msg-bot: #effdde; --msg-user: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Layar Login */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #login-screen input, #login-screen button { width: 300px; padding: 12px; margin: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
+        #login-screen button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+
+        /* Layout Utama Aplikasi */
+        #app { display: none; width: 100%; height: 100%; max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; }
+        
+        /* Sidebar Kiri (Daftar Chat) */
+        .sidebar { width: 30%; min-width: 250px; background: var(--sidebar); border-right: 1px solid #dfe1e5; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 15px; background: white; font-weight: bold; font-size: 18px; border-bottom: 1px solid #dfe1e5; display: flex; justify-content: space-between;}
+        .chat-list { flex: 1; overflow-y: auto; }
+        .chat-item { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f1f1f1; cursor: pointer; transition: 0.2s; }
+        .chat-item:hover, .chat-item.active { background: #f4f4f5; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; background: #ccc; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; }
+        .chat-info { flex: 1; overflow: hidden; }
+        .chat-name { font-weight: 600; font-size: 15px; color: #000; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-preview { font-size: 13px; color: #707579; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Area Chat Kanan */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5 url('https://www.transparenttextures.com/patterns/cubes.png'); /* Pattern ala WA/Tele */ }
+        .chat-header { padding: 15px 20px; background: white; border-bottom: 1px solid #dfe1e5; display: flex; align-items: center; height: 60px; box-sizing: border-box; }
+        .chat-header .avatar { width: 40px; height: 40px; }
+        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+        .msg-bubble { max-width: 65%; padding: 8px 12px; margin-bottom: 10px; border-radius: 12px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-user { background: var(--msg-user); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg-bot { background: var(--msg-bot); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg-time { font-size: 11px; color: #687a86; text-align: right; margin-top: 4px; display: block; }
+        
+        /* Area Input Pesan */
+        .input-area { padding: 15px 20px; background: white; display: flex; align-items: center; gap: 10px; }
+        .input-area input { flex: 1; padding: 12px 15px; border: none; border-radius: 20px; background: #f4f4f5; font-size: 15px; outline: none; }
+        .input-area button { background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .input-area button:hover { background: #2b7cb5; }
+        
+        #empty-chat { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #707579; background: white;}
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2 style="text-align: center; color: #0088cc;">Telegram Bot Web Client</h2>
-    
-    <div id="login-section">
-        <input type="password" id="tokenInput" placeholder="Masukkan Token Bot...">
-        <button onclick="login()">Login & Mulai</button>
+<div id="login-screen">
+    <h2>Login Bot Telegram</h2>
+    <input type="password" id="tokenInput" placeholder="Masukkan Token Bot...">
+    <button onclick="login()">Masuk ke Dashboard</button>
+</div>
+
+<div id="app" style="display: none;">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Pesan Masuk</span>
+            <button onclick="logout()" style="background: none; border: none; color: red; cursor: pointer; font-size: 12px;">Logout</button>
+        </div>
+        <div class="chat-list" id="chat-list">
+            </div>
     </div>
 
-    <div id="chat-section" style="display: none;">
-        <div class="action-btns">
-            <button onclick="logout()" style="background-color: #ff4d4d;">Logout</button>
-            <button onclick="clearChat()" style="background-color: #f0ad4e;">Hapus History</button>
+    <div id="empty-chat">
+        <span style="background: rgba(0,0,0,0.1); padding: 5px 15px; border-radius: 15px;">Pilih chat untuk mulai mengirim pesan</span>
+    </div>
+
+    <div class="chat-area" id="chat-area" style="display: none;">
+        <div class="chat-header" id="chat-header">
+            <img src="" class="avatar" id="header-avatar" style="margin-right: 15px;">
+            <div class="chat-name" id="header-name" style="font-size: 16px;">Nama User</div>
         </div>
-        <p id="status-text" style="font-size: 12px; color: gray; text-align: center;">Menunggu pesan masuk...</p>
-        
-        <div id="chat-box"></div>
-        
-        <input type="text" id="chatIdInput" placeholder="Chat ID Target">
-        <input type="text" id="msgInput" placeholder="Tulis pesan..." onkeypress="if(event.key === 'Enter') kirimPesan()">
-        <button onclick="kirimPesan()">Kirim</button>
+        <div class="messages" id="messages-container">
+            </div>
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="Tulis pesan..." onkeypress="if(event.key === 'Enter') kirimPesan()">
+            <button onclick="kirimPesan()">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            </button>
+        </div>
     </div>
 </div>
 
 <script>
     let botToken = localStorage.getItem('botToken') || '';
     let lastUpdateId = parseInt(localStorage.getItem('lastUpdateId')) || 0;
-    let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    
+    // Struktur Data: Object dengan key chatId. Menyimpan data user & array pesan.
+    let chatsData = JSON.parse(localStorage.getItem('telegramChatsData')) || {}; 
+    let activeChatId = null;
     let pollingInterval;
 
-    // Cek status login pas web dibuka
     window.onload = () => {
         if (botToken) {
-            document.getElementById('tokenInput').value = botToken;
-            login();
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            renderSidebar();
+            startPolling();
         }
     };
 
     function login() {
         botToken = document.getElementById('tokenInput').value.trim();
         if (!botToken) return alert('Token wajib diisi!');
-        
         localStorage.setItem('botToken', botToken);
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('chat-section').style.display = 'block';
-        
-        renderChatHistory(); // Muat chat dari localStorage
-        startPolling();
+        location.reload();
     }
 
     function logout() {
-        clearInterval(pollingInterval);
         localStorage.removeItem('botToken');
         location.reload();
     }
 
-    // Fungsi Render Chat dari LocalStorage
-    function renderChatHistory() {
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
-        chatHistory.forEach(msg => {
-            let div = document.createElement('div');
-            div.className = `msg ${msg.tipe}`;
-            div.innerHTML = `<div class="sender-name">${msg.pengirim}</div>${msg.teks}`;
-            chatBox.appendChild(div);
+    // Fungsi bikin warna avatar random tapi konsisten berdasarkan nama
+    function getAvatarUrl(name) {
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&rounded=true&bold=true`;
+    }
+
+    function renderSidebar() {
+        const listContainer = document.getElementById('chat-list');
+        listContainer.innerHTML = '';
+        
+        // Urutkan chat berdasarkan pesan terakhir
+        let chatArray = Object.values(chatsData).sort((a, b) => {
+            let lastA = a.messages[a.messages.length - 1]?.timestamp || 0;
+            let lastB = b.messages[b.messages.length - 1]?.timestamp || 0;
+            return lastB - lastA;
         });
-        chatBox.scrollTop = chatBox.scrollHeight;
+
+        chatArray.forEach(chat => {
+            let lastMsg = chat.messages[chat.messages.length - 1];
+            let previewText = lastMsg ? (lastMsg.type === 'bot' ? 'Anda: ' + lastMsg.text : lastMsg.text) : 'Belum ada pesan';
+            
+            let div = document.createElement('div');
+            div.className = `chat-item ${activeChatId == chat.id ? 'active' : ''}`;
+            div.onclick = () => openChat(chat.id);
+            div.innerHTML = `
+                <img src="${getAvatarUrl(chat.name)}" class="avatar">
+                <div class="chat-info">
+                    <div class="chat-name">${chat.name} ${chat.username ? '<span style="color:#3390ec; font-size:12px;">@'+chat.username+'</span>' : ''}</div>
+                    <div class="chat-preview">${previewText}</div>
+                </div>
+            `;
+            listContainer.appendChild(div);
+        });
     }
 
-    // Fungsi Simpan ke LocalStorage
-    function simpanPesan(pengirim, teks, tipe) {
-        chatHistory.push({ pengirim, teks, tipe });
-        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-        renderChatHistory();
+    function openChat(chatId) {
+        activeChatId = chatId;
+        document.getElementById('empty-chat').style.display = 'none';
+        document.getElementById('chat-area').style.display = 'flex';
+        
+        let chat = chatsData[chatId];
+        document.getElementById('header-name').innerText = chat.name;
+        document.getElementById('header-avatar').src = getAvatarUrl(chat.name);
+        
+        renderMessages();
+        renderSidebar(); // Update highlight di sidebar
     }
 
-    function clearChat() {
-        if (confirm('Yakin mau hapus semua chat di device ini?')) {
-            chatHistory = [];
-            localStorage.setItem('chatHistory', JSON.stringify([]));
-            renderChatHistory();
+    function renderMessages() {
+        if (!activeChatId) return;
+        const container = document.getElementById('messages-container');
+        container.innerHTML = '';
+        
+        let messages = chatsData[activeChatId].messages;
+        messages.forEach(msg => {
+            let div = document.createElement('div');
+            div.className = `msg-bubble msg-${msg.type}`;
+            
+            // Format waktu sederhana
+            let date = new Date(msg.timestamp);
+            let timeStr = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+            
+            div.innerHTML = `
+                ${msg.text}
+                <span class="msg-time">${timeStr}</span>
+            `;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight; // Auto scroll ke bawah
+    }
+
+    function simpanPesan(chatId, nama, username, teks, tipe) {
+        // Kalau belum ada data chat ini, bikin baru
+        if (!chatsData[chatId]) {
+            chatsData[chatId] = { id: chatId, name: nama, username: username, messages: [] };
         }
+        
+        // Push pesan ke dalam chat tersebut
+        chatsData[chatId].messages.push({
+            text: teks,
+            type: tipe, // 'user' atau 'bot'
+            timestamp: Date.now()
+        });
+
+        localStorage.setItem('telegramChatsData', JSON.stringify(chatsData));
+        
+        renderSidebar();
+        if (activeChatId == chatId) renderMessages();
     }
 
-    // Fungsi Tarik Pesan (via Serverless API lu sendiri)
     function startPolling() {
         pollingInterval = setInterval(async () => {
             try {
@@ -120,41 +219,40 @@
                         localStorage.setItem('lastUpdateId', lastUpdateId);
 
                         if (update.message && update.message.text) {
-                            let pengirim = update.message.from.first_name;
-                            let teks = update.message.text;
                             let chatId = update.message.chat.id;
+                            let pengirim = update.message.from.first_name || 'Tanpa Nama';
+                            let username = update.message.from.username || '';
+                            let teks = update.message.text;
                             
-                            simpanPesan(pengirim, teks, 'user');
-                            document.getElementById('chatIdInput').value = chatId; // Auto fill target
+                            simpanPesan(chatId, pengirim, username, teks, 'user');
                         }
                     });
                 }
-            } catch (e) { console.log('Polling...', e); }
-        }, 3000); // Cek tiap 3 detik
+            } catch (e) { console.log('Checking updates...'); }
+        }, 3000);
     }
 
-    // Fungsi Kirim Pesan (via Serverless API lu sendiri)
     async function kirimPesan() {
-        let chatId = document.getElementById('chatIdInput').value.trim();
+        if (!activeChatId) return;
         let text = document.getElementById('msgInput').value.trim();
-        
-        if (!chatId || !text) return alert('Isi Chat ID dan pesan!');
+        if (!text) return;
+
+        document.getElementById('msgInput').value = ''; // Langsung kosongin biar cepat
 
         try {
             let res = await fetch('/api/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: botToken, chat_id: chatId, text: text })
+                body: JSON.stringify({ token: botToken, chat_id: activeChatId, text: text })
             });
             let data = await res.json();
             
             if (data.ok) {
-                simpanPesan('Gua (Bot)', text, 'bot');
-                document.getElementById('msgInput').value = '';
+                simpanPesan(activeChatId, 'Bot', '', text, 'bot');
             } else {
-                alert(`Gagal: ${data.description}`);
+                alert(`Gagal ngirim: ${data.description}`);
             }
-        } catch (e) { alert('Error kirim pesan'); }
+        } catch (e) { alert('Jaringan error pas ngirim pesan.'); }
     }
 </script>
 
