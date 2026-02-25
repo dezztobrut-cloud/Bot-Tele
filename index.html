@@ -3,221 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TeleBot Multi-Dashboard</title>
+    <title>TeleBot Pro - Full API</title>
     <style>
-        /* CSS Reset & Variables */
-        :root { --bg: #f4f4f5; --primary: #2AABEE; --sidebar: #ffffff; --chat-bg: #E4DDD6; --msg-bot: #E3FFC8; --msg-user: #ffffff; --text-dark: #222; --text-muted: #888; --border: #e0e0e0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
-        body { background: var(--bg); display: flex; height: 100vh; overflow: hidden; color: var(--text-dark); }
+        :root { --bg: #e6ebee; --primary: #3390ec; --sidebar: #ffffff; --chat-bg: #8ba3cb; --msg-bot: #effdde; --msg-user: #ffffff; --danger: #e53935; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        /* Animasi Smooth */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Layout Utama */
-        #app { display: flex; width: 100%; max-width: 1600px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        /* Pakai 100dvh biar smooth di Android pas keyboard naik */
+        body { background: var(--bg); display: flex; height: 100dvh; overflow: hidden; color: #000; }
         
-        /* Panel Kiri (Menu Navigasi Multi-Bot & Fitur) */
-        .nav-panel { width: 70px; background: #1c242b; display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 20px; z-index: 40; }
-        .nav-icon { width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.2s; }
-        .nav-icon:hover, .nav-icon.active { background: var(--primary); transform: scale(1.05); }
-        .bot-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .bot-avatar.active { border-color: var(--primary); transform: scale(1.1); }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #login-screen input, #login-screen button { width: 90%; max-width: 300px; padding: 14px; margin: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        #login-screen button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
 
-        /* Sidebar (Daftar Chat) */
-        .sidebar { width: 320px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 30; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); }
-        .sidebar-header h2 { font-size: 18px; font-weight: 600; }
-        .chat-list { flex: 1; overflow-y: auto; padding: 10px 0; }
-        .chat-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; transition: background 0.2s; position: relative; }
-        .chat-item:hover, .chat-item.active { background: #f0f0f0; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; background: #ddd; flex-shrink: 0; object-fit: cover; }
+        #app { display: none; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; height: 100%; background: white; }
+        
+        /* Sidebar (Smooth Transform) */
+        .sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid #dfe1e5; display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 20; }
+        .sidebar-header { padding: 15px 20px; border-bottom: 1px solid #dfe1e5; display: flex; justify-content: space-between; align-items: center; background: white; }
+        .chat-list { flex: 1; overflow-y: auto; }
+        .chat-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; }
+        .chat-item:hover, .chat-item.active { background: #f4f4f5; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #ccc; flex-shrink: 0; }
         .chat-info { flex: 1; overflow: hidden; }
-        .chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .chat-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-preview { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .group-badge { font-size: 10px; background: #e0e0e0; padding: 2px 6px; border-radius: 10px; margin-left: 5px; color: #555; }
+        .chat-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; justify-content: space-between;}
+        .group-badge { font-size: 10px; background: var(--primary); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
+        .chat-preview { font-size: 14px; color: #707579; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
 
-        /* Area Chat Utama */
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--chat-bg); position: relative; z-index: 20; }
-        .chat-header { padding: 15px 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .back-btn { display: none; background: none; border: none; font-size: 24px; margin-right: 15px; color: var(--primary); cursor: pointer; }
-        .header-text { flex: 1; }
-        .header-name { font-size: 16px; font-weight: 600; }
-        .header-status { font-size: 13px; color: var(--text-muted); }
+        /* Area Chat */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5 url('https://www.transparenttextures.com/patterns/cubes.png'); position: relative; z-index: 10; }
+        .chat-header { padding: 10px 20px; background: white; border-bottom: 1px solid #dfe1e5; display: flex; align-items: center; height: 60px; z-index: 10; }
+        .back-btn { display: none; margin-right: 15px; background: none; border: none; font-size: 24px; color: var(--primary); cursor: pointer; }
+        .header-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .header-name { font-weight: 600; font-size: 16px; }
 
-        /* Bubble Chat Super Smooth */
-        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg-wrapper { max-width: 75%; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        /* Messages Area dengan Smooth Scroll */
+        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+        .msg-wrapper { max-width: 80%; display: flex; flex-direction: column; position: relative; animation: slideUp 0.2s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .msg-wrapper.bot { align-self: flex-end; }
         .msg-wrapper.user { align-self: flex-start; }
-        .msg-bubble { padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.4; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
+        
+        .msg-bubble { padding: 8px 12px; border-radius: 12px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; position: relative; }
         .msg-wrapper.user .msg-bubble { background: var(--msg-user); border-bottom-left-radius: 4px; }
         .msg-wrapper.bot .msg-bubble { background: var(--msg-bot); border-bottom-right-radius: 4px; }
-        .msg-time { font-size: 11px; color: #7aaa5e; float: right; margin: 8px 0 -5px 10px; }
-        .msg-wrapper.user .msg-time { color: #999; }
-
-        /* Input Area (Mengambang dikit ala iOS) */
-        .input-container { padding: 15px 20px; background: transparent; }
-        .input-box { display: flex; align-items: center; background: white; padding: 8px 15px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); gap: 10px; }
-        .input-box input { flex: 1; border: none; padding: 10px 5px; font-size: 15px; outline: none; background: transparent; }
-        .btn-send { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
-        .btn-send:active { transform: scale(0.9); }
-
-        /* Modal Overlay Mulus */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 999; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         
-        /* Mobile Responsive */
+        .sender-name { font-size: 12px; font-weight: bold; color: var(--primary); margin-bottom: 4px; display: none; }
+        .is-group .sender-name { display: block; } /* Cuma tampil di grup */
+        
+        /* Tombol Delete Pesan */
+        .delete-btn { font-size: 12px; color: var(--danger); cursor: pointer; display: inline-block; margin-top: 5px; text-align: right; width: 100%; opacity: 0.7; }
+        .delete-btn:hover { opacity: 1; }
+
+        /* Area Input Responsif */
+        .input-area { padding: 10px 20px; background: white; display: flex; align-items: center; gap: 10px; }
+        .input-area input { flex: 1; padding: 14px 20px; border: none; border-radius: 25px; background: #f4f4f5; font-size: 15px; outline: none; }
+        .input-area button { background: var(--primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .input-area button:active { transform: scale(0.95); }
+
+        /* HP Android Fix (Super Smooth Transition) */
         @media (max-width: 768px) {
-            .nav-panel { flex-direction: row; width: 100%; height: 60px; position: absolute; bottom: 0; z-index: 50; padding: 0 15px; justify-content: space-around; }
-            .sidebar { width: 100%; height: calc(100% - 60px); position: absolute; }
-            .chat-area { width: 100%; height: calc(100% - 60px); position: absolute; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+            .sidebar { width: 100%; position: absolute; height: 100%; }
+            .chat-area { width: 100%; position: absolute; height: 100%; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
             .back-btn { display: block; }
-            
             .mobile-chat-active .sidebar { transform: translateX(-30%); opacity: 0.5; }
-            .mobile-chat-active .chat-area { transform: translateX(0); }
+            .mobile-chat-active .chat-area { transform: translateX(0); z-index: 30; }
         }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div class="nav-panel">
-        <div class="nav-icon active" title="Chats" onclick="switchMenu('chats')">💬</div>
-        <div class="nav-icon" title="Broadcast" onclick="switchMenu('broadcast')">📢</div>
-        <div class="nav-icon" title="Auto Responder" onclick="switchMenu('autorespond')">🤖</div>
-        <div style="flex:1;"></div>
-        <img src="https://ui-avatars.com/api/?name=B1&background=0D8ABC&color=fff" class="bot-avatar active" title="Bot 1">
-        <div class="nav-icon" title="Tambah Bot" onclick="addBot()" style="font-size: 16px; width: 35px; height: 35px;">➕</div>
-    </div>
+<div id="login-screen">
+    <h2 style="color: #3390ec; margin-bottom: 20px;">TeleBot Pro</h2>
+    <input type="password" id="tokenInput" placeholder="Masukkan Token Bot...">
+    <button onclick="login()">Masuk</button>
+</div>
 
-    <div class="sidebar" id="sidebar">
+<div id="app">
+    <div class="sidebar">
         <div class="sidebar-header">
-            <h2 id="menu-title">Pesan Masuk</h2>
+            <h3>Pesan Masuk</h3>
+            <button onclick="logout()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">Logout</button>
         </div>
-        <div class="chat-list" id="chat-list">
-            <div class="chat-item" onclick="openChat('-10012345', 'Grup Diskusi Dev', true)">
-                <img src="https://ui-avatars.com/api/?name=G&background=random" class="avatar">
-                <div class="chat-info">
-                    <div class="chat-top">
-                        <span class="chat-name">Grup Diskusi Dev <span class="group-badge">Group</span></span>
-                    </div>
-                    <div class="chat-preview">Budi: Webnya error nih!</div>
-                </div>
-            </div>
-            <div class="chat-item" onclick="openChat('12345', 'John Doe', false)">
-                <img src="https://ui-avatars.com/api/?name=J&background=random" class="avatar">
-                <div class="chat-info">
-                    <div class="chat-top">
-                        <span class="chat-name">John Doe</span>
-                    </div>
-                    <div class="chat-preview">Kapan fixnya ngab?</div>
-                </div>
-            </div>
-        </div>
+        <div class="chat-list" id="chat-list"></div>
     </div>
 
     <div class="chat-area" id="chat-area">
         <div class="chat-header">
-            <button class="back-btn" onclick="closeChat()">←</button>
-            <img src="https://ui-avatars.com/api/?name=U" class="avatar" id="header-avatar" style="width:40px; height:40px; margin-right:15px;">
-            <div class="header-text" onclick="showProfile()">
-                <div class="header-name" id="header-name">Nama User/Grup</div>
-                <div class="header-status" id="header-status">Klik untuk lihat profil</div>
+            <button class="back-btn" onclick="closeMobileChat()">←</button>
+            <img src="" class="avatar" id="header-avatar" style="width:40px; height:40px;">
+            <div class="header-text">
+                <div class="header-name" id="header-name">Nama Chat</div>
             </div>
         </div>
         
-        <div class="messages" id="messages-container">
-            </div>
+        <div class="messages" id="messages-container"></div>
         
-        <div class="input-container">
-            <div class="input-box">
-                <input type="text" id="msgInput" placeholder="Ketik pesan dengan mulus..." onkeypress="if(event.key === 'Enter') kirimPesan()">
-                <button class="btn-send" onclick="kirimPesan()">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </button>
-            </div>
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key === 'Enter') kirimPesan()">
+            <button onclick="kirimPesan()">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            </button>
         </div>
-    </div>
-</div>
-
-<div class="modal" id="profile-modal">
-    <div class="modal-content" style="text-align: center;">
-        <img src="" id="modal-img" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 15px;">
-        <h2 id="modal-name" style="margin-bottom: 5px;">Nama</h2>
-        <p id="modal-usn" style="color: var(--primary); margin-bottom: 15px;">@username</p>
-        <div style="background: var(--bg); padding: 15px; border-radius: 12px; text-align: left; font-size: 14px; margin-bottom: 20px;">
-            <p><strong>ID:</strong> <span id="modal-id"></span></p>
-            <p><strong>Tipe:</strong> <span id="modal-type"></span></p>
-        </div>
-        <button onclick="document.getElementById('profile-modal').style.display='none'" style="width: 100%; padding: 12px; background: #ff4d4d; color: white; border: none; border-radius: 8px; cursor: pointer;">Tutup</button>
     </div>
 </div>
 
 <script>
-    // FUNGSI UI SUPER SMOOTH
-    function openChat(id, name, isGroup) {
-        document.getElementById('app').classList.add('mobile-chat-active');
-        document.getElementById('header-name').innerText = name;
-        document.getElementById('header-status').innerText = isGroup ? 'Grup Chat' : 'User Pribadi';
-        document.getElementById('header-avatar').src = `https://ui-avatars.com/api/?name=${name}&background=random`;
-        
-        // Setup data buat modal profil
-        document.getElementById('modal-name').innerText = name;
-        document.getElementById('modal-id').innerText = id;
-        document.getElementById('modal-type').innerText = isGroup ? 'Group' : 'Private User';
-        document.getElementById('modal-img').src = document.getElementById('header-avatar').src;
+    let botToken = localStorage.getItem('teleBotToken') || '';
+    let lastUpdateId = parseInt(localStorage.getItem('teleLastUpdateId')) || 0;
+    // Database Chat di LocalStorage
+    let chatsData = JSON.parse(localStorage.getItem('teleChatsData')) || {}; 
+    let activeChatId = null;
 
-        // Kosongkan chat untuk contoh
-        document.getElementById('messages-container').innerHTML = '';
+    window.onload = () => { if (botToken) initApp(); };
+
+    function login() {
+        let token = document.getElementById('tokenInput').value.trim();
+        if (!token) return alert('Isi token dulu bro!');
+        localStorage.setItem('teleBotToken', token);
+        location.reload();
     }
 
-    function closeChat() {
+    function logout() {
+        localStorage.removeItem('teleBotToken');
+        location.reload();
+    }
+
+    function initApp() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        renderSidebar();
+        startPolling();
+    }
+
+    // --- FUNGSI API TELEGRAM REAL ---
+    async function tgApi(method, data = {}) {
+        try {
+            let res = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return await res.json();
+        } catch (e) {
+            console.error('Error API Telegram:', e);
+            return { ok: false };
+        }
+    }
+
+    // --- FUNGSI HAPUS PESAN ---
+    async function hapusPesan(msgId, chatId) {
+        let confirmDelete = confirm("Yakin mau hapus pesan ini dari Telegram?");
+        if (!confirmDelete) return;
+
+        let res = await tgApi('deleteMessage', { chat_id: chatId, message_id: msgId });
+        
+        if (res.ok) {
+            // Hapus dari UI dan LocalStorage
+            chatsData[chatId].messages = chatsData[chatId].messages.filter(m => m.msgId !== msgId);
+            localStorage.setItem('teleChatsData', JSON.stringify(chatsData));
+            renderMessages();
+            renderSidebar();
+        } else {
+            alert('Gagal menghapus pesan. (Pesan yang umurnya lebih dari 48 jam gak bisa dihapus bot)');
+        }
+    }
+
+    // --- RENDER UI (SMOOTH & FIX) ---
+    function renderSidebar() {
+        const list = document.getElementById('chat-list');
+        list.innerHTML = '';
+        
+        // Urutkan dari yang terbaru
+        let chatArray = Object.values(chatsData).sort((a, b) => {
+            let lastA = a.messages[a.messages.length - 1]?.timestamp || 0;
+            let lastB = b.messages[b.messages.length - 1]?.timestamp || 0;
+            return lastB - lastA;
+        });
+
+        chatArray.forEach(chat => {
+            let lastMsg = chat.messages[chat.messages.length - 1];
+            let text = lastMsg ? (lastMsg.sender === 'bot' ? 'Anda: ' + lastMsg.text : lastMsg.text) : 'Belum ada chat';
+            
+            let badge = chat.type.includes('group') ? '<span class="group-badge">Grup</span>' : '';
+            
+            let div = document.createElement('div');
+            div.className = `chat-item ${activeChatId == chat.id ? 'active' : ''}`;
+            div.onclick = () => openChat(chat.id);
+            div.innerHTML = `
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}&background=random&color=fff" class="avatar">
+                <div class="chat-info">
+                    <div class="chat-name">${chat.name} ${badge}</div>
+                    <div class="chat-preview">${text}</div>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function openChat(chatId) {
+        activeChatId = chatId;
+        document.getElementById('app').classList.add('mobile-chat-active'); // Animasi geser smooth di HP
+        
+        let chat = chatsData[chatId];
+        document.getElementById('header-name').innerText = chat.name;
+        document.getElementById('header-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}&background=random&color=fff`;
+        
+        // Kasih penanda kalau grup buat nampilin nama pengirim
+        const msgContainer = document.getElementById('messages-container');
+        if (chat.type.includes('group')) {
+            msgContainer.classList.add('is-group');
+        } else {
+            msgContainer.classList.remove('is-group');
+        }
+
+        renderMessages();
+    }
+
+    function closeMobileChat() {
         document.getElementById('app').classList.remove('mobile-chat-active');
+        activeChatId = null;
+        renderSidebar();
     }
 
-    function showProfile() {
-        document.getElementById('profile-modal').style.display = 'flex';
-    }
-
-    function getTime() {
-        let d = new Date();
-        return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-    }
-
-    function simpanPesanUI(text, sender) {
+    function renderMessages() {
+        if (!activeChatId) return;
         const box = document.getElementById('messages-container');
-        let div = document.createElement('div');
-        div.className = `msg-wrapper ${sender}`;
+        box.innerHTML = '';
         
-        div.innerHTML = `
-            <div class="msg-bubble">
-                ${text}
-                <span class="msg-time">${getTime()}</span>
-            </div>
-        `;
-        box.appendChild(div);
+        chatsData[activeChatId].messages.forEach(msg => {
+            let div = document.createElement('div');
+            div.className = `msg-wrapper ${msg.sender}`;
+            
+            div.innerHTML = `
+                <div class="msg-bubble">
+                    <div class="sender-name">${msg.realSenderName || 'User'}</div>
+                    ${msg.text}
+                    <div class="delete-btn" onclick="hapusPesan(${msg.msgId}, '${activeChatId}')">🗑️ Hapus</div>
+                </div>
+            `;
+            box.appendChild(div);
+        });
         
-        // Auto scroll smooth ke paling bawah
+        // Auto scroll mentok bawah
         box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
     }
 
-    function kirimPesan() {
-        let input = document.getElementById('msgInput');
-        let text = input.value.trim();
-        if (!text) return;
-
-        input.value = '';
-        simpanPesanUI(text, 'bot');
+    // --- LOGIC NERIMA & NGIRIM PESAN (REAL API) ---
+    function simpanPesan(chatId, chatName, chatType, text, sender, msgId, realSenderName = '') {
+        if (!chatsData[chatId]) {
+            chatsData[chatId] = { id: chatId, name: chatName, type: chatType, messages: [] };
+        } else {
+            chatsData[chatId].name = chatName; // Update nama in case berubah
+        }
         
-        // Simulasi balasan mulus (Hapus ini kalau dihubungin ke API asli)
-        setTimeout(() => { simpanPesanUI('Lancar dan smooth kan bos?', 'user'); }, 1000);
+        chatsData[chatId].messages.push({ 
+            msgId: msgId, 
+            text: text, 
+            sender: sender, 
+            realSenderName: realSenderName,
+            timestamp: Date.now() 
+        });
+        
+        localStorage.setItem('teleChatsData', JSON.stringify(chatsData));
+        
+        renderSidebar();
+        if (activeChatId == chatId) renderMessages();
     }
 
-    function addBot() {
-        let token = prompt("Masukkan Token Bot Baru:");
-        if(token) alert("Fitur Multi-bot akan menyimpan token: " + token + " ke IndexedDB.");
+    // Polling API tiap 2.5 detik
+    function startPolling() {
+        setInterval(async () => {
+            let res = await tgApi('getUpdates', { offset: lastUpdateId + 1, timeout: 5 });
+            
+            if (res.ok && res.result.length > 0) {
+                for (let update of res.result) {
+                    lastUpdateId = update.update_id;
+                    localStorage.setItem('teleLastUpdateId', lastUpdateId);
+
+                    // Kalau ada pesan masuk
+                    if (update.message && update.message.text) {
+                        let msg = update.message;
+                        let chatId = msg.chat.id.toString();
+                        let chatType = msg.chat.type; // 'private', 'group', 'supergroup'
+                        
+                        // Kalau chat pribadi pake nama orangnya, kalau grup pake judul grupnya
+                        let chatName = chatType === 'private' ? msg.from.first_name : msg.chat.title;
+                        let realSender = msg.from.first_name;
+                        
+                        simpanPesan(chatId, chatName, chatType, msg.text, 'user', msg.message_id, realSender);
+                    }
+                }
+            }
+        }, 2500); 
+    }
+
+    async function kirimPesan() {
+        if (!activeChatId) return alert('Pilih chat dulu!');
+        let text = document.getElementById('msgInput').value.trim();
+        if (!text) return;
+
+        document.getElementById('msgInput').value = ''; 
+        
+        // Tembak API SendMessage
+        let res = await tgApi('sendMessage', { chat_id: activeChatId, text: text });
+        
+        if (res.ok) {
+            // Kalau sukses dikirim dari API, baru simpan dan tampilin di UI
+            simpanPesan(activeChatId, chatsData[activeChatId].name, chatsData[activeChatId].type, text, 'bot', res.result.message_id);
+        } else {
+            alert('Gagal ngirim pesan bro! Cek koneksi atau token.');
+        }
     }
 </script>
 
