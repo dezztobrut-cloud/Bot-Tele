@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Bot Web Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center;}
+        .container { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background-color: #0088cc; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #006699; }
+        #chat-box { height: 300px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background-color: #e5ddd5; }
+        .msg { margin-bottom: 8px; padding: 8px; border-radius: 5px; background: white; width: fit-content; max-width: 80%; }
+        .msg.bot { background: #dcf8c6; margin-left: auto; text-align: right; }
+        .sender-name { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align: center; color: #0088cc;">Telegram Bot Login</h2>
+    
+    <div id="login-section">
+        <p>Masukkan Token Bot dari BotFather:</p>
+        <input type="password" id="tokenInput" placeholder="123456789:ABCdefGHIjklMNOpqr...">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="chat-section" style="display: none;">
+        <h3 id="bot-name" style="margin-top: 0;">Loading...</h3>
+        <div id="chat-box"></div>
+        
+        <input type="text" id="chatIdInput" placeholder="Chat ID Target (Otomatis terisi jika ada pesan masuk)">
+        <input type="text" id="msgInput" placeholder="Tulis pesanmu di sini...">
+        <button onclick="kirimPesan()">Kirim Pesan</button>
+    </div>
+</div>
+
+<script>
+    let botToken = '';
+    let lastUpdateId = 0;
+    let pollingInterval;
+
+    // Fungsi untuk Login dan verifikasi token
+    async function login() {
+        const token = document.getElementById('tokenInput').value.trim();
+        if (!token) return alert('Token tidak boleh kosong!');
+
+        try {
+            let res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+            let data = await res.json();
+            
+            if (data.ok) {
+                botToken = token;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('chat-section').style.display = 'block';
+                document.getElementById('bot-name').innerText = `Masuk sebagai: ${data.result.first_name}`;
+                startPolling(); // Mulai narik pesan
+            } else {
+                alert('Token salah atau tidak valid!');
+            }
+        } catch (e) {
+            alert('Gagal terhubung ke Telegram. Cek koneksi internet.');
+        }
+    }
+
+    // Fungsi untuk nerima pesan (Polling)
+    function startPolling() {
+        pollingInterval = setInterval(async () => {
+            try {
+                let res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=10`);
+                let data = await res.json();
+                
+                if (data.ok && data.result.length > 0) {
+                    data.result.forEach(update => {
+                        lastUpdateId = update.update_id; // Update ID biar pesan gak dobel
+                        if (update.message && update.message.text) {
+                            let pengirim = update.message.from.first_name;
+                            let teks = update.message.text;
+                            let chatId = update.message.chat.id;
+                            
+                            tampilkanPesan(pengirim, teks, 'user');
+                            
+                            // Otomatis set Chat ID biar lu gampang balesnya
+                            document.getElementById('chatIdInput').value = chatId;
+                        }
+                    });
+                }
+            } catch (e) { console.error('Error saat narik pesan:', e); }
+        }, 2000); // Ngecek pesan baru setiap 2 detik
+    }
+
+    // Fungsi untuk ngirim pesan
+    async function kirimPesan() {
+        let chatId = document.getElementById('chatIdInput').value.trim();
+        let text = document.getElementById('msgInput').value.trim();
+        
+        if (!chatId || !text) return alert('Chat ID dan Pesan harus diisi!');
+
+        try {
+            let res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: text })
+            });
+            let data = await res.json();
+            
+            if (data.ok) {
+                tampilkanPesan('Bot (Kamu)', text, 'bot');
+                document.getElementById('msgInput').value = ''; // Kosongin input setelah ngirim
+            } else {
+                alert(`Gagal ngirim pesan: ${data.description}`);
+            }
+        } catch (e) {
+            alert('Error saat mengirim pesan.');
+        }
+    }
+
+    // Fungsi untuk nampilin pesan ke layar
+    function tampilkanPesan(nama, teks, tipe) {
+        let chatBox = document.getElementById('chat-box');
+        let div = document.createElement('div');
+        div.className = `msg ${tipe}`;
+        div.innerHTML = `<div class="sender-name">${nama}</div>${teks}`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll ke bawah
+    }
+</script>
+
+</body>
+</html>
