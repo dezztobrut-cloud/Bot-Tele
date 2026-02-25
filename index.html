@@ -34,7 +34,7 @@
     @media (max-width: 768px) {
       .mobile-view-chat #sidebar { transform: translateX(-100%); }
       .mobile-view-chat #chat-area { transform: translateX(0); }
-      .chat-item .chat-del { opacity: 1; pointer-events: auto; transform: none; } /* mobile always visible */
+      .chat-item .chat-del { opacity: 1; pointer-events: auto; transform: none; }
     }
   </style>
 </head>
@@ -101,7 +101,7 @@
       <button onclick="showTools('ttdl')" title="TikTok DL" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:text-white hover:bg-white/20 flex items-center justify-center transition shrink-0">
         <i class="fa-brands fa-tiktok"></i>
       </button>
-      <button onclick="showTools('login')" title="Tambah Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center transition shrink-0">
+      <button onclick="showTools('login')" title="Tambah / Ganti Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white flex items-center justify-center transition shrink-0">
         <i class="fa-solid fa-plus"></i>
       </button>
 
@@ -164,7 +164,6 @@
 
           <div class="mx-1 w-px h-6 bg-gray-200"></div>
 
-          <!-- EXTRA TOOLS (TANPA NGERUSAK UI) -->
           <button onclick="showTools('poll')" title="Buat Polling" class="w-8 h-8 rounded-lg hover:bg-gray-200 text-gray-600 transition flex items-center justify-center">
             <i class="fa-solid fa-chart-column text-[14px]"></i>
           </button>
@@ -189,7 +188,6 @@
           </button>
           <input type="file" id="fileUpload" class="hidden" accept="image/*,audio/*,video/*" onchange="handleFileUpload()" />
 
-          <!-- POLL BUTTON (SEBELAH PAPERCLIP) -->
           <button onclick="showTools('poll')" class="w-11 h-11 rounded-full text-gray-500 hover:bg-gray-100 flex items-center justify-center transition shrink-0 mb-0.5" title="Polling">
             <i class="fa-solid fa-chart-pie text-[18px]"></i>
           </button>
@@ -247,7 +245,9 @@
   let selectedMsgId = null;
   let selectedMsgText = "";
   let selectedMsgType = "text";
-  let selectedMsgSender = "";
+  let selectedMsgSender = "";        // 'user' / 'bot'
+  let selectedMsgRealSender = "";    // nama pengirim (grup)
+  let selectedMsgFwdFrom = "";       // forwarded from
 
   let replyToMsgId = null;
   let editMsgId = null;
@@ -307,38 +307,38 @@
     location.reload();
   }
 
-  // --- TOOL MODALS ---
+  // --- LOGIN UI (lebih bagus + list bot one-tap) ---
   function renderSavedBotsList() {
     if(bots.length === 0) return '';
+
     let items = bots.map(b => {
       let isActive = b.token === activeToken;
       return `
-        <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-2.5 mb-2">
+        <button onclick="useSavedBot('${b.token}')" class="w-full flex items-center justify-between p-2.5 rounded-2xl border ${isActive?'border-blue-200 bg-blue-50':'border-gray-200 bg-white hover:bg-gray-50'} transition">
           <div class="flex items-center gap-3 overflow-hidden">
-            <img src="${b.avatar}" class="w-10 h-10 rounded-xl object-cover border border-gray-100 shadow-sm">
+            <img src="${b.avatar}" class="w-11 h-11 rounded-2xl object-cover border border-gray-100 shadow-sm">
             <div class="overflow-hidden text-left">
-              <div class="font-extrabold text-[13px] text-gray-900 truncate">${safeName(b.name,'Bot')}</div>
-              <div class="text-[11px] text-blue-500 font-bold truncate">@${safeName(b.username,'username')}</div>
+              <div class="font-black text-[13px] text-gray-900 truncate">${safeName(b.name,'Bot')}</div>
+              <div class="text-[11px] text-blue-600 font-extrabold truncate">@${safeName(b.username,'username')}</div>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button onclick="useSavedBot('${b.token}')" class="px-3 py-2 rounded-xl text-xs font-extrabold ${isActive?'bg-blue-600 text-white':'bg-white border border-gray-200 text-gray-800 hover:bg-gray-100'} transition">
-              Masuk
-            </button>
-            <button onclick="removeSavedBot('${b.token}')" class="w-9 h-9 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus bot tersimpan">
+            <span class="text-[10px] font-extrabold px-2 py-1 rounded-full ${isActive?'bg-blue-600 text-white':'bg-gray-100 text-gray-600'}">${isActive?'AKTIF':'PILIH'}</span>
+            <span onclick="event.stopPropagation(); removeSavedBot('${b.token}')" class="w-9 h-9 rounded-2xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus bot tersimpan">
               <i class="fa-solid fa-trash"></i>
-            </button>
+            </span>
           </div>
-        </div>
+        </button>
       `;
     }).join('');
+
     return `
       <div class="text-left mt-5">
         <div class="flex items-center justify-between mb-2">
-          <div class="font-extrabold text-gray-900 text-[13px]">Saved Bots</div>
+          <div class="font-black text-gray-900 text-[13px]">Saved Bots</div>
           <div class="text-[11px] text-gray-500 font-semibold">${bots.length} bot</div>
         </div>
-        <div class="max-h-60 overflow-y-auto hide-scroll pr-1">${items}</div>
+        <div class="max-h-64 overflow-y-auto hide-scroll pr-1 space-y-2">${items}</div>
       </div>
     `;
   }
@@ -348,20 +348,29 @@
 
     if(type === 'login') {
       html = `
-        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-          <i class="fa-solid fa-robot"></i>
+        <div class="w-full">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-xl">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+
+          <h2 class="text-2xl font-black text-gray-900 mb-1">Login Workspace</h2>
+          <p class="text-[12px] text-gray-500 mb-4 font-semibold">Pilih bot tersimpan (1 klik) atau login pakai token.</p>
+
+          ${renderSavedBotsList()}
+
+          <div class="mt-5 bg-gray-50 border border-gray-200 rounded-2xl p-3.5 text-left">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-extrabold text-gray-900 text-[13px]">Login pakai Token</div>
+              <div class="text-[11px] text-gray-500 font-semibold">Aman (localStorage)</div>
+            </div>
+            <input type="password" id="i-token" class="w-full p-3.5 bg-white border border-gray-200 rounded-xl mb-3 text-sm font-mono text-center outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Paste Token Bot...">
+            <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-black py-3.5 rounded-xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">
+              Masuk Sistem
+            </button>
+          </div>
+
+          ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full mt-4 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Tutup</button>` : ''}
         </div>
-        <h2 class="text-xl font-extrabold text-gray-900 mb-1">Login Workspace</h2>
-        <p class="text-[12px] text-gray-500 mb-4 font-semibold">Auto-login aktif: pilih bot tersimpan atau paste token</p>
-
-        <input type="password" id="i-token" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl mb-3 text-sm font-mono text-center outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Paste Token Bot...">
-        <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl mb-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">
-          Masuk Sistem
-        </button>
-
-        ${renderSavedBotsList()}
-
-        ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full mt-4 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">Tutup</button>` : ''}
       `;
     }
 
@@ -421,8 +430,8 @@
       html = `
         <h2 class="text-lg font-extrabold mb-4 text-left">Teruskan ke...</h2>
         <div class="flex gap-2 mb-4 bg-gray-100 p-1 rounded-xl">
-          <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-white shadow-sm text-gray-900 py-2 rounded-lg text-xs font-bold transition">Asli</button>
-          <button onclick="setFwdMode(true)" id="btn-fwd-copy" class="flex-1 text-gray-500 py-2 rounded-lg text-xs font-bold transition">No Sender</button>
+          <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-white shadow-sm text-gray-900 py-2 rounded-lg text-xs font-bold transition">Asli (Forward)</button>
+          <button onclick="setFwdMode(true)" id="btn-fwd-copy" class="flex-1 text-gray-500 py-2 rounded-lg text-xs font-bold transition">No Sender (Copy)</button>
         </div>
         <div class="max-h-56 overflow-y-auto border border-gray-100 p-1 rounded-xl mb-4 hide-scroll">${listHTML || `<div class="p-4 text-sm text-gray-500 font-semibold">Belum ada chat.</div>`}</div>
         <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>
@@ -550,9 +559,7 @@
       const name = safeName(data.result.first_name, 'Bot');
       const username = safeName(data.result.username, 'username');
 
-      // prevent duplicates
       bots = bots.filter(b => b.token !== token);
-
       bots.push({ token, id, name, username, avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`});
       localStorage.setItem('dz_bots', JSON.stringify(bots));
       localStorage.setItem('dz_active', token);
@@ -581,7 +588,7 @@
       let d = await r.json();
       if(d.code===0 && d.data.play) {
         let s = await tgApi('sendVideo', {chat_id: activeChatId, video: d.data.play, caption: `📥 <b>TikTok No Watermark</b>\n${safeName(d.data.title,'')}`, parse_mode: 'HTML'});
-        if(s.ok) simpanPesan(activeChatId, chatsData[activeChatId].name, d.data.title, 'bot', s.result.message_id, 'video', d.data.play);
+        if(s.ok) simpanPesan(activeChatId, chatsData[activeChatId].name, d.data.title, 'bot', s.result.message_id, 'video', d.data.play, null, chatsData[activeChatId].type, currentBotName(), null);
       } else showToast('Gagal ambil video', 'error');
     } catch(e) { showToast('Error API TikTok', 'error'); }
   }
@@ -594,9 +601,13 @@
     let c = 0;
     for(let id of cIds) {
       let r = await tgApi('sendMessage', {chat_id: id, text: `[BROADCAST]\n\n${txt}`, parse_mode: 'HTML'});
-      if(r.ok) { c++; simpanPesan(id, chatsData[id].name, `[BROADCAST]\n${txt}`, 'bot', r.result.message_id, 'text'); }
+      if(r.ok) { c++; simpanPesan(id, chatsData[id].name, `[BROADCAST]\n${txt}`, 'bot', r.result.message_id, 'text', '', null, chatsData[id].type, currentBotName(), null); }
     }
     showToast(`Terkirim ke ${c} chat!`);
+  }
+
+  function currentBotName() {
+    return safeName(bots.find(b => b.token === activeToken)?.name, 'Bot');
   }
 
   async function sendPoll() {
@@ -624,7 +635,7 @@
     });
 
     if(res.ok) {
-      simpanPesan(activeChatId, chatsData[activeChatId].name, `📊 Polling: ${q}`, 'bot', res.result.message_id, 'text');
+      simpanPesan(activeChatId, chatsData[activeChatId].name, `📊 Polling: ${q}`, 'bot', res.result.message_id, 'text', '', null, chatsData[activeChatId].type, currentBotName(), null);
       showToast('Polling terkirim!');
     } else {
       showToast('Gagal kirim polling', 'error');
@@ -642,8 +653,32 @@
     closeGenModal();
     let method = isCopyFwd ? 'copyMessage' : 'forwardMessage';
     let res = await tgApi(method, {chat_id: targetId, from_chat_id: activeChatId, message_id: selectedMsgId});
-    if(res.ok) { showToast('Pesan Diteruskan!'); simpanPesan(targetId, chatsData[targetId].name, "[Pesan Diteruskan]", 'bot', res.result.message_id, 'text'); }
-    else showToast('Gagal teruskan', 'error');
+
+    if(res.ok) {
+      // Simpan local preview forward biar tampil Telegram-like:
+      // "Diteruskan" + sender + pesan
+      const target = chatsData[targetId];
+      const senderLine = selectedMsgFwdFrom || selectedMsgRealSender || (selectedMsgSender === 'bot' ? currentBotName() : 'User');
+
+      const previewText = selectedMsgText || (selectedMsgType !== 'text' ? 'Media' : '');
+      const fwdFromName = isCopyFwd ? null : senderLine; // copy: no sender; forward: ada sender
+
+      simpanPesan(
+        targetId,
+        target?.name || 'Chat',
+        previewText ? previewText : '[Pesan Diteruskan]',
+        'bot',
+        res.result.message_id,
+        'text',
+        '',
+        null,
+        target?.type || 'private',
+        currentBotName(),
+        fwdFromName
+      );
+
+      showToast('Pesan Diteruskan!');
+    } else showToast('Gagal teruskan', 'error');
   }
 
   function formatText(tag) {
@@ -666,10 +701,7 @@
     const q = (document.getElementById('chat-search')?.value || '').trim().toLowerCase();
 
     let arr = Object.values(chatsData).sort((a,b) => (b.messages[b.messages.length-1]?.timestamp||0) - (a.messages[a.messages.length-1]?.timestamp||0));
-
-    if(q) {
-      arr = arr.filter(c => (safeName(c.name,'').toLowerCase().includes(q) || safeName(c.id,'').toLowerCase().includes(q)));
-    }
+    if(q) arr = arr.filter(c => (safeName(c.name,'').toLowerCase().includes(q) || safeName(c.id,'').toLowerCase().includes(q)));
 
     if(arr.length === 0) {
       list.innerHTML = `
@@ -686,7 +718,19 @@
 
     arr.forEach(c => {
       let last = c.messages?.[c.messages.length - 1];
-      let txt = last ? (last.type==='service'?'📌 Pesan disematkan':(last.type==='photo'?'📷 Gambar':(last.type==='video'?'🎥 Video':(last.type==='audio'?'🎵 Audio':(last.type==='sticker'?'🌟 Stiker':last.text))))) : 'Mulai obrolan...';
+      let txt = last
+        ? (last.type==='service'?'📌 Pesan disematkan'
+          :(last.type==='photo'?'📷 Gambar'
+          :(last.type==='video'?'🎥 Video'
+          :(last.type==='audio'?'🎵 Audio'
+          :(last.type==='sticker'?'🌟 Stiker'
+          :last.text))))))
+        : 'Mulai obrolan...';
+
+      // kasih indicator forwarded di preview
+      let preview = stripHtml(txt || '');
+      if(last?.forwardedFrom) preview = `↪️ ${safeName(last.forwardedFrom,'Diteruskan')}: ${preview}`;
+
       let act = activeChatId == c.id ? 'bg-blue-50' : 'bg-white hover:bg-gray-50';
       let badge = c.type !== 'private' ? `<span class="bg-indigo-100 text-indigo-700 px-1.5 py-[2px] rounded text-[9px] font-extrabold ml-1.5 tracking-wide">GRUP</span>` : '';
       let unread = c.unread > 0 ? `<div class="bg-blue-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shrink-0 ml-2 shadow-sm">${c.unread}</div>` : '';
@@ -704,7 +748,7 @@
                 </button>
               </div>
             </div>
-            <p class="text-[13px] text-gray-500 truncate">${stripHtml(txt || '').substring(0,90)}</p>
+            <p class="text-[13px] text-gray-500 truncate">${preview.substring(0,90)}</p>
           </div>
         </div>
       `;
@@ -735,6 +779,7 @@
   function openChat(chatId) {
     activeChatId = chatId;
     chatsData[chatId].unread = 0;
+
     let botId = bots.find(b => b.token === activeToken).id;
     localStorage.setItem(`dz_chats_${botId}`, JSON.stringify(chatsData));
 
@@ -759,14 +804,15 @@
   }
 
   // --- ACTION MODAL ---
-  function showMsgAction(id, txt, type, sender) {
-    // block click if swipe just happened
+  function showMsgAction(id, txt, type, sender, realSender, fwdFrom) {
     if(swipe.lock) { swipe.lock = false; return; }
 
     selectedMsgId = id;
     selectedMsgText = txt;
     selectedMsgType = type;
     selectedMsgSender = sender;
+    selectedMsgRealSender = realSender || '';
+    selectedMsgFwdFrom = fwdFrom || '';
 
     document.getElementById('action-msg-preview').innerText = txt ? stripHtml(txt).substring(0,40) + "..." : "Media / File Audio";
     document.getElementById('btn-edit-msg').style.display = sender === 'bot' && type === 'text' ? 'flex' : 'none';
@@ -808,7 +854,8 @@
     closeModal('msg-action-modal');
     let res = await tgApi('copyMessage', {chat_id: activeChatId, from_chat_id: activeChatId, message_id: selectedMsgId});
     if(res.ok) {
-      simpanPesan(activeChatId, chatsData[activeChatId].name, selectedMsgText, 'bot', res.result.message_id, selectedMsgType, chatsData[activeChatId].messages.find(m=>m.id===selectedMsgId)?.mediaUrl);
+      // copyMessage = no sender
+      simpanPesan(activeChatId, chatsData[activeChatId].name, selectedMsgText, 'bot', res.result.message_id, selectedMsgType, chatsData[activeChatId].messages.find(m=>m.id===selectedMsgId)?.mediaUrl, null, chatsData[activeChatId].type, currentBotName(), null);
       showToast('Pesan diulang!');
     }
   }
@@ -817,8 +864,8 @@
     closeModal('msg-action-modal');
     let res = await tgApi('pinChatMessage', {chat_id: activeChatId, message_id: selectedMsgId});
     if(res.ok) {
-      let botName = bots.find(b => b.token === activeToken)?.name || 'Bot';
-      simpanPesan(activeChatId, chatsData[activeChatId].name, `📌 ${safeName(botName,'Bot')} menyematkan pesan '${stripHtml(selectedMsgText).substring(0,25)}...'`, 'bot', Date.now(), 'service');
+      let botName = currentBotName();
+      simpanPesan(activeChatId, chatsData[activeChatId].name, `📌 ${safeName(botName,'Bot')} menyematkan pesan '${stripHtml(selectedMsgText).substring(0,25)}...'`, 'bot', Date.now(), 'service', '', null, chatsData[activeChatId].type, botName, null);
       showToast('Pesan disematkan');
     }
   }
@@ -843,9 +890,8 @@
     document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-paper-plane text-[18px] ml-1"></i>`;
   }
 
-  // --- SWIPE TO REPLY (MOBILE + DESKTOP TOUCH) ---
+  // --- SWIPE TO REPLY ---
   function bindSwipe(el, msg) {
-    const threshold = 45;
     el.addEventListener('touchstart', (e) => {
       if(!e.touches || e.touches.length !== 1) return;
       swipe.active = true;
@@ -861,25 +907,21 @@
       if(!swipe.active || !e.touches || e.touches.length !== 1) return;
       const dx = e.touches[0].clientX - swipe.startX;
       const dy = e.touches[0].clientY - swipe.startY;
-      if(Math.abs(dy) > 16) return; // allow scroll
-      if(dx < -8) swipe.moved = true; // left swipe start
-      // no visual translate (biar tampilan aman)
+      if(Math.abs(dy) > 16) return;
+      if(dx < -12) swipe.moved = true;
     }, {passive:true});
 
     el.addEventListener('touchend', () => {
       if(!swipe.active) return;
       swipe.active = false;
-
-      // detect left swipe
-      // we can't read last dx from touchend reliably without tracking; do minimal:
-      // if user moved left and ended, trigger reply by checking moved flag + small time window
       if(swipe.moved) {
-        // lock click so it won't open action modal
         swipe.lock = true;
         selectedMsgId = swipe.msgId;
         selectedMsgText = swipe.msgText;
         selectedMsgType = msg.type || 'text';
         selectedMsgSender = msg.sender || 'user';
+        selectedMsgRealSender = msg.realSender || '';
+        selectedMsgFwdFrom = msg.forwardedFrom || '';
         replyToMsgId = swipe.msgId;
         editMsgId = null;
         setActionUI("Membalas Pesan", swipe.msgText || "Media");
@@ -887,6 +929,23 @@
       }
       swipe.moved = false;
     }, {passive:true});
+  }
+
+  // --- TELEGRAM-LIKE HEADER for forward ---
+  function renderForwardHeader(isBotBubble, fwdFrom) {
+    if(!fwdFrom) return '';
+    // biar kontras di bubble bot (biru) dan user (putih)
+    const cls = isBotBubble ? 'text-white/90' : 'text-gray-600';
+    const cls2 = isBotBubble ? 'text-white font-extrabold' : 'text-blue-600 font-extrabold';
+    return `
+      <div class="mb-1.5">
+        <div class="text-[11px] ${cls} font-bold flex items-center gap-1.5">
+          <i class="fa-solid fa-share text-[10px] opacity-80"></i>
+          <span class="opacity-90">Diteruskan</span>
+        </div>
+        <div class="text-[12px] ${cls2} leading-none mt-0.5">${safeName(fwdFrom,'Sender')}</div>
+      </div>
+    `;
   }
 
   // --- RENDER BUBBLE CHAT ---
@@ -906,8 +965,20 @@
       let alignCls = isUser ? 'items-start' : 'items-end';
       let bubCls = isUser ? 'chat-user' : 'chat-bot';
 
-      let senderName = (chat.type !== 'private' && isUser && msg.realSender) ? `<div class="text-[11px] font-extrabold text-blue-500 mb-1 leading-none tracking-wide">${safeName(msg.realSender,'User')}</div>` : '';
-      let replyHtml = msg.replyToText ? `<div class="bg-black/5 border-l-[3px] border-black/20 px-2 py-1.5 rounded mb-1.5 text-[11px] opacity-90 truncate max-w-full"><span class="font-bold text-blue-500 block mb-0.5">Membalas</span> ${stripHtml(msg.replyToText)}</div>` : '';
+      // ✅ Sender di grup: tampil untuk USER dan BOT (kayak Telegram)
+      // - incoming user: realSender dari msg.from
+      // - outgoing bot: realSender = nama bot
+      let showSender = (chat.type !== 'private' && msg.realSender);
+      let senderName = showSender
+        ? `<div class="text-[11px] font-extrabold ${isUser ? 'text-blue-600' : 'text-white/90'} mb-1 leading-none tracking-wide">${safeName(msg.realSender,'User')}</div>`
+        : '';
+
+      let replyHtml = msg.replyToText
+        ? `<div class="bg-black/5 border-l-[3px] border-black/20 px-2 py-1.5 rounded mb-1.5 text-[11px] opacity-90 truncate max-w-full"><span class="font-bold text-blue-500 block mb-0.5">Membalas</span> ${stripHtml(msg.replyToText)}</div>`
+        : '';
+
+      // ✅ Forward view: "Diteruskan" + sender + pesan
+      let fwdHtml = renderForwardHeader(!isUser, msg.forwardedFrom);
 
       let mediaHtml = '';
       if(msg.type === 'photo') mediaHtml = `<img src="${msg.mediaUrl}" class="rounded-xl mb-2 max-w-[240px] border border-black/5 shadow-sm">`;
@@ -923,14 +994,17 @@
       box.innerHTML += `
         <div class="flex flex-col ${alignCls} w-full mb-1.5">
           <div id="${bubbleId}" class="max-w-[85%] px-3.5 py-2.5 rounded-2xl ${bubCls} cursor-pointer active:scale-[0.97] transition-transform"
-               onclick="showMsgAction(${msg.id}, '${safeText}', '${msg.type}', '${msg.sender}')">
-            ${senderName} ${replyHtml} ${mediaHtml} ${txtHtml}
+               onclick="showMsgAction(${msg.id}, '${safeText}', '${msg.type}', '${msg.sender}', '${(msg.realSender||'').replace(/'/g,"\\'")}', '${(msg.forwardedFrom||'').replace(/'/g,"\\'")}')">
+            ${senderName}
+            ${fwdHtml}
+            ${replyHtml}
+            ${mediaHtml}
+            ${txtHtml}
             <div class="text-[10px] opacity-60 text-right mt-1 font-medium tracking-wide">${formatTime(msg.timestamp)}</div>
           </div>
         </div>
       `;
 
-      // bind swipe after injected
       setTimeout(() => {
         const el = document.getElementById(bubbleId);
         if(el) bindSwipe(el, msg);
@@ -941,7 +1015,8 @@
   }
 
   // --- SIMPAN & POLLING ---
-  function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl='', replyText=null, chatType='private', realSender=null) {
+  // forwardedFrom: nama sender original (Telegram-like)
+  function simpanPesan(chatId, nama, text, sender, msgId, type, mediaUrl='', replyText=null, chatType='private', realSender=null, forwardedFrom=null) {
     chatId = chatId?.toString?.() || String(chatId);
     nama = safeName(nama, chatId);
 
@@ -961,6 +1036,7 @@
       mediaUrl,
       replyToText: replyText,
       realSender,
+      forwardedFrom,
       timestamp: Date.now()
     });
 
@@ -970,7 +1046,6 @@
     renderSidebar();
     if (activeChatId == chatId) renderMessages();
 
-    // avatar fetch only for private-ish ids and only if we don't already have it
     if(sender === 'user' && !chatsData[chatId].avatar) {
       tgApi('getUserProfilePhotos', { user_id: chatId, limit: 1 }).then(async res => {
         if (res.ok && res.result.total_count > 0) {
@@ -983,6 +1058,14 @@
         }
       });
     }
+  }
+
+  function getForwardFromName(msg) {
+    // Telegram fields: forward_from, forward_from_chat, forward_sender_name
+    if(msg.forward_from) return safeName(msg.forward_from.first_name || msg.forward_from.username, 'Sender');
+    if(msg.forward_from_chat) return safeName(msg.forward_from_chat.title || msg.forward_from_chat.username, 'Channel');
+    if(msg.forward_sender_name) return safeName(msg.forward_sender_name, 'Sender');
+    return null;
   }
 
   function startPolling() {
@@ -1025,6 +1108,9 @@
             let replyTxt = msg.reply_to_message ? (msg.reply_to_message.text || msg.reply_to_message.caption || 'Media') : null;
             let realSender = safeName(msg.from?.first_name || msg.from?.username, 'User');
 
+            // ✅ forward meta
+            let fwdFrom = getForwardFromName(msg);
+
             simpanPesan(
               msg.chat.id.toString(),
               chatName,
@@ -1035,7 +1121,8 @@
               mediaUrl,
               replyTxt,
               chatType,
-              realSender
+              realSender,
+              fwdFrom
             );
           }
         }
@@ -1061,7 +1148,8 @@
     showToast('Mengirim file...');
     let res = await tgApi(method, fd, true);
     if(res.ok) {
-      simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, isVid?'video':(isAud?'audio':'photo'), URL.createObjectURL(f), null);
+      // ✅ di grup: pesan bot juga punya "sender" (nama bot)
+      simpanPesan(activeChatId, chatsData[activeChatId].name, '', 'bot', res.result.message_id, isVid?'video':(isAud?'audio':'photo'), URL.createObjectURL(f), null, chatsData[activeChatId].type, currentBotName(), null);
       cancelAction();
     } else showToast('Gagal ngirim file', 'error');
   }
@@ -1094,7 +1182,20 @@
 
     let res = await tgApi('sendMessage', payload);
     if (res.ok) {
-      simpanPesan(activeChatId, chatsData[activeChatId].name, text, 'bot', res.result.message_id, 'text', '', replyToMsgId ? document.getElementById('action-text-ui').innerText : null);
+      // ✅ FIX: sender bot jangan ilang di grup
+      simpanPesan(
+        activeChatId,
+        chatsData[activeChatId].name,
+        text,
+        'bot',
+        res.result.message_id,
+        'text',
+        '',
+        replyToMsgId ? document.getElementById('action-text-ui').innerText : null,
+        chatsData[activeChatId].type,
+        currentBotName(),
+        null
+      );
       cancelAction();
     } else showToast('Gagal ngirim', 'error');
   }
