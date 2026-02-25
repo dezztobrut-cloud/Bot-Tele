@@ -3,143 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate LS Manager</title>
+    <title>Super LS Manager</title>
     <style>
-        /* Biar background web-nya gak putih polos pas dibuka */
-        body {
-            background-color: #1a1a1a;
-            margin: 0;
-            font-family: sans-serif;
+        /* --- CSS & Responsiveness --- */
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #f1f1f1; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        
+        .container { background: #1e1e1e; width: 100%; max-width: 800px; border-radius: 12px; padding: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.6); border: 1px solid #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header h2 { margin: 0; color: #00ffcc; font-size: 22px; }
+        .stats { background: #2a2a2a; padding: 5px 10px; border-radius: 6px; font-size: 13px; color: #aaa; border: 1px solid #444; }
+
+        /* Form, Search, & Buttons */
+        .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .input-group { display: flex; gap: 10px; flex: 1; min-width: 250px; flex-wrap: wrap; }
+        input[type="text"] { flex: 1; min-width: 120px; padding: 10px; background: #2b2b2b; border: 1px solid #444; color: #fff; border-radius: 6px; outline: none; }
+        input[type="text"]:focus { border-color: #00ffcc; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        button:hover { opacity: 0.8; }
+        
+        .btn-add { background: #28a745; color: white; flex: 1; min-width: 100px; }
+        .btn-search { background: #444; color: white; flex: 1; min-width: 100px; }
+        
+        /* Table Layout */
+        .table-wrapper { overflow-x: auto; background: #222; border: 1px solid #444; border-radius: 8px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 500px; }
+        th { background: #111; color: #00ffcc; padding: 12px; position: sticky; top: 0; }
+        td { padding: 12px; border-bottom: 1px solid #333; word-break: break-all; }
+        tr:hover { background: #2a2a2a; }
+        
+        .val-cell { color: #ccc; font-family: monospace; }
+        .action-btns { display: flex; gap: 5px; }
+        .btn-icon { padding: 6px 10px; font-size: 14px; border-radius: 4px; }
+        .btn-edit { background: #ffc107; color: #000; }
+        .btn-copy { background: #007bff; color: #fff; }
+        .btn-del { background: #dc3545; color: #fff; }
+
+        /* Bottom Actions */
+        .bottom-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .bottom-actions button { flex: 1; min-width: 140px; }
+        .btn-export { background: #17a2b8; color: white; }
+        .btn-import { background: #6f42c1; color: white; }
+        .btn-clear { background: #dc3545; color: white; width: 100%; margin-top: 10px; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            .input-group { flex-direction: column; width: 100%; }
+            .controls { flex-direction: column; }
+            button { width: 100%; }
         }
     </style>
 </head>
 <body>
 
+    <div class="container">
+        <div class="header">
+            <h2>🚀 Super LS Manager</h2>
+            <div class="stats" id="ls-size">Size: 0 KB</div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="search-input" placeholder="🔍 Cari Key atau Value..." onkeyup="app.render()">
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="input-key" placeholder="Key (Kunci)...">
+                <input type="text" id="input-val" placeholder="Value (Isi Data)...">
+            </div>
+            <button class="btn-add" onclick="app.save()">💾 Save</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Key</th>
+                        <th style="width: 50%;">Value</th>
+                        <th style="width: 20%;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="bottom-actions">
+            <button class="btn-export" onclick="app.export()">📥 Export JSON</button>
+            <button class="btn-import" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
+            <input type="file" id="import-file" accept=".json" style="display:none;" onchange="app.import(event)">
+        </div>
+        <button class="btn-clear" onclick="app.clearAll()">🚨 HAPUS SEMUA DATA 🚨</button>
+    </div>
+
     <script>
-        (function() {
-            // Biar gak dobel
-            if(document.getElementById('ultimate-ls-manager')) return;
-
-            // Bikin Kotak UI Utama
-            const container = document.createElement('div');
-            container.id = 'ultimate-ls-manager';
-            
-            // Posisi gue taruh di tengah kalau dibuka sebagai HTML mandiri
-            container.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; background:#1e1e1e; color:#fff; z-index:999999; border-radius:8px; padding:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-family: monospace; font-size: 14px; border: 1px solid #444;';
-            
-            // Desain HTML di dalamnya
-            container.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">
-                    <b style="font-size:18px; color:#00ffcc;">🚀 Ultimate LS Manager</b>
-                </div>
+        const app = {
+            // Render Tabel & Filter Search
+            render: function() {
+                const tbody = document.getElementById('table-body');
+                const searchQ = document.getElementById('search-input').value.toLowerCase();
+                tbody.innerHTML = '';
                 
-                <div style="display:flex; gap:5px; margin-bottom:15px;">
-                    <input type="text" id="uls-key" placeholder="Key..." style="flex:1; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:4px; outline:none;">
-                    <input type="text" id="uls-val" placeholder="Value..." style="flex:1; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:4px; outline:none;">
-                    <button onclick="window.uls.add()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:bold;">Save</button>
-                </div>
+                let totalSize = 0;
 
-                <div style="max-height:300px; overflow-y:auto; border:1px solid #444; border-radius:4px; margin-bottom:15px; background:#252525;">
-                    <table style="width:100%; border-collapse: collapse; text-align:left;">
-                        <thead style="background:#111; position:sticky; top:0; z-index:2;">
-                            <tr>
-                                <th style="padding:10px; border-bottom:1px solid #555; color:#00ffcc;">Key</th>
-                                <th style="padding:10px; border-bottom:1px solid #555; color:#00ffcc;">Value</th>
-                                <th style="padding:10px; border-bottom:1px solid #555; text-align:center; color:#00ffcc;">Act</th>
-                            </tr>
-                        </thead>
-                        <tbody id="uls-body"></tbody>
-                    </table>
-                </div>
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const val = localStorage.getItem(key);
+                    
+                    // Hitung estimasi ukuran (bytes)
+                    totalSize += (key.length + val.length) * 2; 
 
-                <div style="display:flex; gap:8px; margin-bottom:10px;">
-                    <button onclick="window.uls.export()" style="flex:1; background:#007bff; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Export JSON</button>
-                    <button onclick="document.getElementById('uls-file').click()" style="flex:1; background:#17a2b8; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">📤 Import JSON</button>
-                    <input type="file" id="uls-file" accept=".json" style="display:none;" onchange="window.uls.import(event)">
-                </div>
-                <button onclick="window.uls.clearAll()" style="width:100%; background:#dc3545; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold; letter-spacing:1px;">🚨 CLEAR ALL DATA 🚨</button>
-            `;
+                    // Fitur Pencarian (Filter)
+                    if (key.toLowerCase().includes(searchQ) || val.toLowerCase().includes(searchQ)) {
+                        let displayVal = val.length > 60 ? val.substring(0, 60) + '...' : val;
 
-            document.body.appendChild(container);
-
-            // Logika Fungsi
-            window.uls = {
-                refresh: function() {
-                    const tbody = document.getElementById('uls-body');
-                    tbody.innerHTML = '';
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        let val = localStorage.getItem(key);
-                        let displayVal = val.length > 50 ? val.substring(0, 50) + '...' : val; 
-                        
                         const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid #333';
                         tr.innerHTML = `
-                            <td style="padding:10px; word-break:break-all; color:#e6e6e6; max-width:120px;">${key}</td>
-                            <td style="padding:10px; word-break:break-all; color:#aaa;" title='${val.replace(/'/g, "&#39;")}'>${displayVal}</td>
-                            <td style="padding:10px; text-align:center;">
-                                <button onclick="window.uls.del('${key}')" style="background:#ff4d4d; color:white; border:none; border-radius:3px; cursor:pointer; padding:6px 12px; font-weight:bold;">X</button>
+                            <td><b>${key}</b></td>
+                            <td class="val-cell" title='${val.replace(/'/g, "&#39;")}'>${displayVal}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-icon btn-edit" onclick="app.edit('${key}')" title="Edit">✏️</button>
+                                    <button class="btn-icon btn-copy" onclick="app.copy('${key}')" title="Copy Value">📋</button>
+                                    <button class="btn-icon btn-del" onclick="app.del('${key}')" title="Hapus">❌</button>
+                                </div>
                             </td>
                         `;
                         tbody.appendChild(tr);
                     }
-                },
-                add: function() {
-                    const k = document.getElementById('uls-key').value;
-                    const v = document.getElementById('uls-val').value;
-                    if(k) {
-                        localStorage.setItem(k, v);
-                        document.getElementById('uls-key').value = '';
-                        document.getElementById('uls-val').value = '';
-                        this.refresh();
-                    }
-                },
-                del: function(key) {
-                    localStorage.removeItem(key);
-                    this.refresh();
-                },
-                clearAll: function() {
-                    if(confirm('Yakin hapus SEMUA data localStorage?')) {
-                        localStorage.clear();
-                        this.refresh();
-                    }
-                },
-                export: function() {
-                    let data = {};
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        data[key] = localStorage.getItem(key);
-                    }
-                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `LS_Backup_${window.location.hostname || 'local'}.json`;
-                    a.click();
-                },
-                import: function(e) {
-                    const file = e.target.files[0];
-                    if(!file) return;
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            for(let key in data) {
-                                localStorage.setItem(key, data[key]);
-                            }
-                            window.uls.refresh();
-                            alert('✅ Data berhasil di-import!');
-                        } catch(err) {
-                            alert('❌ Format JSON tidak valid!');
-                        }
-                    };
-                    reader.readAsText(file);
-                    e.target.value = ''; 
                 }
-            };
 
-            // Jalankan
-            window.uls.refresh();
-        })();
+                // Update info ukuran storage
+                const kb = (totalSize / 1024).toFixed(2);
+                document.getElementById('ls-size').innerText = `Terpakai: ${kb} KB`;
+            },
+
+            // Tambah / Update Data
+            save: function() {
+                const k = document.getElementById('input-key').value.trim();
+                const v = document.getElementById('input-val').value.trim();
+                if (k) {
+                    localStorage.setItem(k, v);
+                    document.getElementById('input-key').value = '';
+                    document.getElementById('input-val').value = '';
+                    this.render();
+                } else {
+                    alert('Key tidak boleh kosong!');
+                }
+            },
+
+            // Siapin data buat diedit ke form atas
+            edit: function(key) {
+                document.getElementById('input-key').value = key;
+                document.getElementById('input-val').value = localStorage.getItem(key);
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll otomatis ke atas
+            },
+
+            // Copy Value ke Clipboard
+            copy: function(key) {
+                const val = localStorage.getItem(key);
+                navigator.clipboard.writeText(val).then(() => {
+                    alert('✅ Value berhasil di-copy!');
+                });
+            },
+
+            // Hapus 1 Item
+            del: function(key) {
+                if(confirm(`Hapus data dengan key: "${key}"?`)) {
+                    localStorage.removeItem(key);
+                    this.render();
+                }
+            },
+
+            // Hapus Semua
+            clearAll: function() {
+                if(confirm('🔥 YAKIN HAPUS SEMUA DATA LOCALSTORAGE? 🔥')) {
+                    localStorage.clear();
+                    this.render();
+                }
+            },
+
+            // Export ke JSON
+            export: function() {
+                if(localStorage.length === 0) return alert('Data kosong, tidak ada yang bisa di-export.');
+                let data = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    data[key] = localStorage.getItem(key);
+                }
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `LS_Backup_${new Date().getTime()}.json`;
+                a.click();
+            },
+
+            // Import dari JSON
+            import: function(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = JSON.parse(evt.target.result);
+                        for(let key in data) {
+                            localStorage.setItem(key, data[key]);
+                        }
+                        app.render();
+                        alert('✅ Import sukses!');
+                    } catch(err) {
+                        alert('❌ Error: Format JSON tidak valid!');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = ''; 
+            }
+        };
+
+        // Render pas web pertama kali dibuka
+        app.render();
     </script>
 </body>
 </html>
