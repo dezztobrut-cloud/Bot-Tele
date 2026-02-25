@@ -7,10 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { height: 100dvh; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; }
+        body { height: 100dvh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #f0f2f5; overflow: hidden; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         
+        /* Premium UI Elements */
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .glass-dark { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Animations */
         .modal-enter { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .slide-up { animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
         .toast-enter { animation: slideLeft 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
@@ -19,9 +23,11 @@
         @keyframes slideUp { 0% { opacity: 0; transform: translateY(100%); } 100% { opacity: 1; transform: translateY(0); } }
         @keyframes slideLeft { 0% { opacity: 0; transform: translateX(100%); } 100% { opacity: 1; transform: translateX(0); } }
         
+        /* Chat Bubbles */
         .chat-user { background: #ffffff; border: 1px solid #e5e7eb; border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .chat-bot { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-bottom-right-radius: 6px; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
         
+        /* Sidebar Delete Button */
         .chat-item-wrap .delete-chat-btn { opacity: 0; transition: all 0.2s; transform: scale(0.9); }
         .chat-item-wrap:hover .delete-chat-btn { opacity: 1; transform: scale(1); }
 
@@ -34,18 +40,44 @@
 </head>
 <body class="text-gray-800 antialiased flex w-full" id="main-body">
 
-<div id="boot-screen" class="fixed inset-0 bg-[#0f172a] z-[99999] flex flex-col items-center justify-center text-white">
-    <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center text-5xl mb-6 shadow-[0_0_30px_rgba(37,99,235,0.5)] animate-pulse"><i class="fa-solid fa-bolt"></i></div>
-    <h2 class="text-2xl font-black tracking-wider mb-2">DezzBGram</h2>
-    <p class="text-sm text-blue-300 font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> Memuat Sistem...</p>
-    
-    <div id="error-box" class="hidden text-center bg-red-500/20 border border-red-500/50 p-4 rounded-xl mt-4 max-w-xs">
-        <p class="text-red-300 text-sm font-bold mb-3"><i class="fa-solid fa-triangle-exclamation"></i> Memori Lokal Rusak</p>
-        <button onclick="hardReset()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition shadow-lg">Reset Sistem</button>
+<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+<div id="login-page" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-blue-900 to-slate-900 hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-[100px] opacity-40"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[100px] opacity-40"></div>
+
+    <div class="glass-dark rounded-[30px] shadow-2xl w-full max-w-md p-8 relative overflow-hidden flex flex-col items-center">
+        <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-4xl text-white shadow-[0_0_20px_rgba(59,130,246,0.5)] mb-5">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h2 class="text-3xl font-black text-white tracking-wide mb-1">DezzBGram</h2>
+        <p class="text-blue-300 text-sm font-medium mb-8 uppercase tracking-widest">Premium Workspace</p>
+
+        <div id="saved-bots-container" class="w-full hidden mb-6">
+            <p class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider text-left pl-1">Pilih Akun Tersimpan:</p>
+            <div id="saved-bots-list" class="flex flex-col gap-2 max-h-44 overflow-y-auto hide-scroll p-1">
+                </div>
+            <div class="flex items-center gap-3 mt-5 mb-2">
+                <div class="h-px bg-white/10 flex-1"></div>
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Tambah Akun Baru</span>
+                <div class="h-px bg-white/10 flex-1"></div>
+            </div>
+        </div>
+
+        <div class="w-full relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <input type="password" id="i-token-login" class="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:bg-white/10 focus:border-blue-400 outline-none transition font-mono text-sm shadow-inner" placeholder="Paste Token Bot di sini...">
+        </div>
+        
+        <button id="btn-proses-login" onclick="prosesLoginUtama()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl mt-4 shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex justify-center items-center gap-2">
+            <span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+
+        <button id="btn-cancel-login" onclick="batalLoginUtama()" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-3.5 rounded-2xl mt-3 transition-all hidden">Kembali ke App</button>
     </div>
 </div>
-
-<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
 <div id="general-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[999] flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 modal-enter text-center" id="general-modal-content"></div>
@@ -82,7 +114,7 @@
         <button onclick="showTools('broadcast')" title="Broadcast" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-bullhorn"></i></button>
         <button onclick="showTools('ttdl')" title="TikTok DL" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-pink-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-brands fa-tiktok"></i></button>
         <button onclick="showTools('device')" title="Device Info" class="w-[42px] h-[42px] rounded-[14px] bg-white/10 text-gray-300 hover:bg-indigo-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-mobile-screen"></i></button>
-        <button onclick="showTools('login')" title="Ganti/Tambah Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
+        <button onclick="bukaHalamanLogin(true)" title="Ganti/Tambah Bot" class="w-[42px] h-[42px] rounded-[14px] bg-blue-500/20 text-blue-400 hover:bg-blue-600 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-plus"></i></button>
         
         <div class="hidden md:block w-8 h-px bg-white/20 my-1"></div><div class="md:hidden h-6 w-px bg-white/20 mx-1"></div>
         <div id="bot-list-container" class="flex md:flex-col gap-3 shrink-0 items-center"></div>
@@ -90,7 +122,7 @@
 
     <div id="sidebar" class="w-full md:w-[340px] bg-white border-r border-gray-200 flex flex-col absolute md:relative z-20 h-[calc(100%-60px)] md:h-full shrink-0 transform translate-x-0 transition-transform duration-300">
         
-        <div class="p-4 border-b border-gray-100 bg-white shadow-[0_2px_5px_rgba(0,0,0,0.02)] shrink-0 flex items-center justify-between z-10">
+        <div class="p-4 border-b border-gray-100 bg-white shadow-sm shrink-0 flex items-center justify-between z-10">
             <div class="flex items-center gap-3 overflow-hidden">
                 <img id="active-bot-avatar" src="https://ui-avatars.com/api/?name=B" class="w-11 h-11 rounded-full object-cover border border-gray-200 shadow-sm shrink-0">
                 <div class="overflow-hidden">
@@ -98,7 +130,7 @@
                     <p id="active-bot-username" class="text-[12px] text-blue-600 font-bold truncate">@Memuat...</p>
                 </div>
             </div>
-            <button onclick="confirmLogoutBot()" class="w-9 h-9 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition shrink-0"><i class="fa-solid fa-power-off text-sm"></i></button>
+            <button onclick="confirmLogoutBot()" title="Logout Bot" class="w-9 h-9 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition shrink-0 ml-2"><i class="fa-solid fa-power-off text-sm"></i></button>
         </div>
         
         <div class="px-3 pt-3 pb-1 bg-white">
@@ -160,14 +192,14 @@
 </div>
 
 <script>
-    // --- 1. UTILITIES & ANTI-ERROR BASE64 ---
+    // --- 1. UTILITIES ---
     const safeEncode = (str) => { try { return btoa(encodeURIComponent(str || '')); } catch(e){ return ''; } };
     const safeDecode = (str) => { try { return decodeURIComponent(atob(str)); } catch(e){ return ''; } };
 
     function showToast(msg, type = 'success') {
         const c = document.getElementById('toast-container'); const t = document.createElement('div');
-        t.className = `${type==='success'?'bg-slate-800':'bg-red-600'} text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 toast-enter border border-white/10`;
-        t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check text-green-400':'fa-triangle-exclamation text-white'} text-lg"></i><span class="text-[13px] font-bold tracking-wide">${msg}</span>`;
+        t.className = `${type==='success'?'bg-emerald-600':'bg-red-600'} text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 toast-enter border border-white/10`;
+        t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check text-white':'fa-triangle-exclamation text-white'} text-lg"></i><span class="text-[13px] font-bold tracking-wide">${msg}</span>`;
         c.appendChild(t); setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(100%)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 2500);
     }
     
@@ -175,45 +207,96 @@
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function closeGenModal() { closeModal('general-modal'); }
 
-    // --- 2. STATE MANAGEMENT & SAFE BOOTLOADER ---
+    // --- 2. STATE MANAGEMENT ---
     let bots = []; 
     let activeToken = '';
     let chatsData = {}; let activeChatId = null; let pollingInterval = null;
     let selectedMsgId = null; let selectedMsgText = ""; let selectedMsgType = "text"; let selectedMsgSender = "";
     let replyToMsgId = null; let editMsgId = null;
 
-    // SAFE BOOT (Anti Layar Putih)
-    window.addEventListener('load', () => {
+    // --- 3. AUTO LOGIN / BOOT CHECK ---
+    window.onload = () => {
         try {
-            // Coba parsing memori HP, kalo gagal tangkep errornya
-            let localBots = localStorage.getItem('dz_bots_v13');
-            if (localBots) { bots = JSON.parse(localBots); }
-            if (!Array.isArray(bots)) bots = [];
-            
-            activeToken = localStorage.getItem('dz_active_v13') || '';
+            let localBots = localStorage.getItem('dz_bots_v14');
+            bots = localBots ? JSON.parse(localBots) : [];
+            activeToken = localStorage.getItem('dz_active_v14') || '';
+        } catch(e) { bots = []; activeToken = ''; }
 
-            // Hapus Boot Screen & Tunjukin App/Login
-            setTimeout(() => {
-                document.getElementById('boot-screen').classList.add('hidden');
-                
-                if (bots.length === 0 || !activeToken) {
-                    showTools('login');
-                } else {
-                    initApp();
-                }
-            }, 600); // Simulasi loading mulus
-
-        } catch (error) {
-            console.error(error);
-            document.getElementById('error-box').classList.remove('hidden');
+        if (bots.length === 0 || !activeToken) {
+            bukaHalamanLogin(false);
+        } else {
+            initApp();
         }
-    });
+    };
 
-    // Reset Keras (Buat benerin memori yang nyangkut)
-    function hardReset() {
-        localStorage.removeItem('dz_bots_v13');
-        localStorage.removeItem('dz_active_v13');
+    // Fungsi Utama Buka Halaman Login Premium
+    function bukaHalamanLogin(fromApp = false) {
+        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('login-page').classList.remove('hidden');
+        
+        if (fromApp && bots.length > 0) {
+            document.getElementById('btn-cancel-login').classList.remove('hidden');
+        } else {
+            document.getElementById('btn-cancel-login').classList.add('hidden');
+        }
+
+        // Render List Bot Tersimpan di Halaman Login
+        let listContainer = document.getElementById('saved-bots-list');
+        let wrapContainer = document.getElementById('saved-bots-container');
+        
+        if(bots.length > 0) {
+            wrapContainer.classList.remove('hidden');
+            listContainer.innerHTML = '';
+            bots.forEach(b => {
+                listContainer.innerHTML += `
+                    <div onclick="masukAkunTersimpan('${b.token}')" class="flex items-center p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl cursor-pointer transition w-full">
+                        <img src="${b.avatar}" class="w-11 h-11 rounded-full mr-3 border border-white/20">
+                        <div class="flex-1 overflow-hidden text-left">
+                            <h4 class="text-[14px] font-bold text-white truncate">${b.name}</h4>
+                            <p class="text-xs text-blue-400 font-medium truncate">@${b.username}</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/50 text-sm mr-2"></i>
+                    </div>`;
+            });
+        } else {
+            wrapContainer.classList.add('hidden');
+        }
+    }
+
+    function batalLoginUtama() {
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+    }
+
+    function masukAkunTersimpan(token) {
+        localStorage.setItem('dz_active_v14', token);
         location.reload();
+    }
+
+    async function prosesLoginUtama() {
+        let token = document.getElementById('i-token-login').value.trim(); 
+        if(!token) return showToast('Token wajib diisi!', 'error');
+        
+        let btn = document.getElementById('btn-proses-login');
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memverifikasi...`;
+        
+        try {
+            let res = await fetch(`https://api.telegram.org/bot${token}/getMe`); let data = await res.json();
+            if(data.ok) {
+                if(!bots.find(b => b.token === token)) {
+                    bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.result.first_name)}&background=3b82f6&color=fff`});
+                    localStorage.setItem('dz_bots_v14', JSON.stringify(bots)); 
+                }
+                localStorage.setItem('dz_active_v14', token); 
+                location.reload(); 
+            } else {
+                showToast('Token Telegram Invalid!', 'error');
+                btn.innerHTML = `<span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>`;
+            }
+        } catch(e) { 
+            showToast('Gagal terhubung ke server', 'error'); 
+            btn.innerHTML = `<span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>`;
+        }
     }
 
     async function tgApi(method, payload = {}, isFormData = false) {
@@ -223,11 +306,12 @@
         catch (e) { return {ok: false}; }
     }
 
-    // --- 3. CORE INIT ---
+    // --- 4. APP INIT ---
     function initApp() {
+        document.getElementById('login-page').classList.add('hidden');
         document.getElementById('general-modal').classList.add('hidden');
         let bot = bots.find(b => b.token === activeToken);
-        if(!bot) { showTools('login'); return; } 
+        if(!bot) { bukaHalamanLogin(false); return; } 
         
         document.getElementById('app-container').classList.remove('hidden');
         
@@ -235,10 +319,8 @@
         document.getElementById('active-bot-username').innerText = `@${bot.username}`;
         document.getElementById('active-bot-avatar').src = bot.avatar;
         
-        try {
-            let localChats = localStorage.getItem(`dz_chats_v13_${bot.id}`);
-            chatsData = localChats ? JSON.parse(localChats) : {};
-        } catch(e) { chatsData = {}; }
+        try { let localChats = localStorage.getItem(`dz_chats_v14_${bot.id}`); chatsData = localChats ? JSON.parse(localChats) : {}; } 
+        catch(e) { chatsData = {}; }
 
         renderNavRail(); renderSidebar(); startPolling();
     }
@@ -247,27 +329,23 @@
         let c = document.getElementById('bot-list-container'); c.innerHTML = '';
         bots.forEach(b => {
             let active = b.token === activeToken ? 'border-2 border-white shadow-[0_0_15px_rgba(255,255,255,0.4)] scale-110' : 'opacity-50 hover:opacity-100 hover:scale-105';
-            c.innerHTML += `<img src="${b.avatar}" title="${b.name}" onclick="localStorage.setItem('dz_active_v13', '${b.token}'); location.reload();" class="w-[42px] h-[42px] rounded-[14px] object-cover cursor-pointer transition-all duration-300 ${active}">`;
+            c.innerHTML += `<img src="${b.avatar}" title="${b.name}" onclick="masukAkunTersimpan('${b.token}')" class="w-[42px] h-[42px] rounded-[14px] object-cover cursor-pointer transition-all duration-300 ${active}">`;
         });
     }
 
-    // --- 4. TOOL MODALS ---
+    function confirmLogoutBot() {
+        if(confirm('Hapus bot ini dari Workspace DezzBGram?')) {
+            bots = bots.filter(b => b.token !== activeToken); localStorage.setItem('dz_bots_v14', JSON.stringify(bots));
+            if(bots.length > 0) localStorage.setItem('dz_active_v14', bots[0].token);
+            else { localStorage.removeItem('dz_active_v14'); localStorage.removeItem('dz_bots_v14'); }
+            location.reload();
+        }
+    }
+
+    // --- 5. TOOL MODALS (INSIDE APP) ---
     function showTools(type) {
         let html = '';
-        if(type === 'login') {
-            let savedBotsHTML = '';
-            if(bots.length > 0) {
-                savedBotsHTML = `<div class="mb-4 text-left"><p class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">Pilih Bot Tersimpan:</p><div class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1 hide-scroll">`;
-                bots.forEach(b => { savedBotsHTML += `<div onclick="localStorage.setItem('dz_active_v13', '${b.token}'); location.reload();" class="flex items-center p-3 bg-gray-50 hover:bg-blue-50 border border-gray-100 rounded-2xl cursor-pointer transition"><img src="${b.avatar}" class="w-10 h-10 rounded-full mr-3"><div class="flex-1 overflow-hidden"><h4 class="text-[14px] font-bold text-gray-900 truncate">${b.name}</h4><p class="text-xs text-blue-500 font-medium truncate">@${b.username}</p></div></div>`; });
-                savedBotsHTML += `</div></div><div class="flex items-center gap-3 my-4"><div class="h-px bg-gray-200 flex-1"></div><span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Atau Tambah Baru</span><div class="h-px bg-gray-200 flex-1"></div></div>`;
-            }
-            html = `<div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-users"></i></div>
-                    <h2 class="text-2xl font-black text-gray-900 mb-4">Workspace Login</h2>
-                    ${savedBotsHTML}
-                    <input type="password" id="i-token" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl mb-3 text-sm font-mono text-center outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Paste Token Bot Baru...">
-                    <button onclick="prosesLogin()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Login Token</button>
-                    ${bots.length>0 ? `<button onclick="closeGenModal()" class="w-full mt-2 bg-gray-100 text-gray-700 py-3.5 rounded-2xl font-bold hover:bg-gray-200 transition">Batal</button>` : ''}`;
-        } else if(type === 'device') {
+        if(type === 'device') {
             html = `<h2 class="text-2xl font-black mb-4 text-gray-900">📱 Info Device</h2>
                     <div class="text-left bg-gray-50 p-4 rounded-2xl text-[14px] space-y-2 border border-gray-200">
                     <p><b class="text-gray-900">OS:</b> <span class="text-gray-600">${navigator.platform}</span></p>
@@ -288,11 +366,11 @@
         } else if(type === 'dezzbgram') {
             html = `<div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-5xl shadow-2xl"><i class="fa-solid fa-bolt"></i></div>
                     <h2 class="text-3xl font-black text-gray-900 mb-1">DezzBGram</h2>
-                    <p class="text-[13px] font-extrabold text-blue-600 bg-blue-50 inline-block px-4 py-1.5 rounded-full mb-5">Versi 13.0 Ultimate Final</p>
+                    <p class="text-[13px] font-extrabold text-blue-600 bg-blue-50 inline-block px-4 py-1.5 rounded-full mb-5">Versi 14.0 Ultimate Final</p>
                     <button onclick="window.location.href='dev.html'" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl mb-2 hover:bg-black transition flex justify-center items-center gap-2 shadow-xl"><i class="fa-solid fa-code"></i> Ke Halaman Developer</button>
                     <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Tutup</button>`;
         } else if(type === 'forward') {
-            let listHTML = Object.values(chatsData).map(c => `<div onclick="executeForward('${c.id}')" class="flex items-center p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition"><img src="${c.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}`}" class="w-10 h-10 rounded-full mr-3 border border-gray-100"><span class="text-[14px] font-bold text-gray-800 truncate">${c.name}</span></div>`).join('');
+            let listHTML = Object.values(chatsData).map(c => `<div onclick="executeForward('${c.id}', true)" class="flex items-center p-3 hover:bg-gray-50 rounded-xl cursor-pointer transition"><img src="${c.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}`}" class="w-10 h-10 rounded-full mr-3 border border-gray-100"><span class="text-[14px] font-bold text-gray-800 truncate">${c.name}</span></div>`).join('');
             html = `<h2 class="text-xl font-black mb-4 text-left text-gray-900">Teruskan ke...</h2>
                     <div class="flex gap-2 mb-4 bg-gray-100 p-1.5 rounded-2xl">
                         <button onclick="setFwdMode(false)" id="btn-fwd-ori" class="flex-1 bg-white shadow-sm text-gray-900 py-2.5 rounded-xl text-xs font-bold transition">Asli (Ori)</button>
@@ -309,27 +387,7 @@
                     <button onclick="kirimPoll()" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl mb-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition">Kirim Polling</button>
                     <button onclick="closeGenModal()" class="w-full bg-gray-100 py-3.5 rounded-2xl font-bold text-gray-700 hover:bg-gray-200 transition">Batal</button>`;
         }
-        document.getElementById('general-modal').classList.remove('hidden');
         openModalGen(html);
-    }
-
-    // --- AKSI TOOLS ---
-    async function prosesLogin() {
-        let token = document.getElementById('i-token').value.trim(); if(!token) return showToast('Isi token!', 'error');
-        let res = await fetch(`https://api.telegram.org/bot${token}/getMe`); let data = await res.json();
-        if(data.ok) {
-            bots.push({ token, id: data.result.id, name: data.result.first_name, username: data.result.username, avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.result.first_name)}&background=3b82f6&color=fff`});
-            localStorage.setItem('dz_bots_v13', JSON.stringify(bots)); localStorage.setItem('dz_active_v13', token); location.reload(); 
-        } else showToast('Token invalid!', 'error');
-    }
-    
-    function confirmLogoutBot() {
-        if(confirm('Hapus bot ini dari Workspace DezzBGram?')) {
-            bots = bots.filter(b => b.token !== activeToken); localStorage.setItem('dz_bots_v13', JSON.stringify(bots));
-            if(bots.length > 0) localStorage.setItem('dz_active_v13', bots[0].token);
-            else { localStorage.removeItem('dz_active_v13'); localStorage.removeItem('dz_bots_v13'); }
-            location.reload();
-        }
     }
 
     async function prosesTTDL() {
@@ -381,13 +439,8 @@
     }
 
     function cariObrolan(keyword) {
-        let filter = keyword.toLowerCase();
-        let items = document.querySelectorAll('.chat-item-wrap');
-        items.forEach(item => {
-            let name = item.getAttribute('data-name').toLowerCase();
-            if(name.indexOf(filter) > -1) item.style.display = 'flex';
-            else item.style.display = 'none';
-        });
+        let filter = keyword.toLowerCase(); let items = document.querySelectorAll('.chat-item-wrap');
+        items.forEach(item => { let name = item.getAttribute('data-name').toLowerCase(); if(name.indexOf(filter) > -1) item.style.display = 'flex'; else item.style.display = 'none'; });
     }
 
     function formatText(tag) {
@@ -408,7 +461,6 @@
             let act = activeChatId == c.id ? 'bg-blue-50/80 border-blue-500' : 'bg-white border-transparent hover:bg-gray-50';
             let badge = c.type !== 'private' ? `<span class="bg-indigo-100 text-indigo-700 px-1.5 py-[2px] rounded text-[9px] font-extrabold ml-1.5 tracking-wide">GRUP</span>` : '';
             let unread = c.unread > 0 ? `<div class="bg-blue-600 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center shrink-0 ml-2 shadow-sm">${c.unread}</div>` : '';
-
             let safeName = c.name && c.name !== "undefined" ? c.name : "Pengguna";
 
             list.innerHTML += `
@@ -426,9 +478,8 @@
     function hapusObrolan(chatId, e) {
         e.stopPropagation();
         if(confirm(`Yakin hapus chat ini dari daftar web?`)) {
-            delete chatsData[chatId];
-            let botId = bots.find(b => b.token === activeToken).id;
-            localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData));
+            delete chatsData[chatId]; let botId = bots.find(b => b.token === activeToken).id;
+            localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData));
             if(activeChatId === chatId) { closeMobileChat(); document.getElementById('messages-container').innerHTML = ''; }
             renderSidebar(); showToast('Chat dihapus.');
         }
@@ -436,7 +487,7 @@
 
     function openChat(chatId) {
         activeChatId = chatId; chatsData[chatId].unread = 0;
-        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData));
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData));
         document.getElementById('main-body').classList.add('mobile-view-chat');
         
         let safeName = chatsData[chatId].name && chatsData[chatId].name !== "undefined" ? chatsData[chatId].name : "Pengguna";
@@ -448,14 +499,30 @@
     function closeMobileChat() { document.getElementById('main-body').classList.remove('mobile-view-chat'); activeChatId = null; renderSidebar(); }
     function formatTime(ts) { let d = new Date(ts); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
 
-    // --- KLIK PESAN MUNCUL MENU MURNI (FIX BENTROK) ---
-    function handleBubbleClick(id, b64Text, type, sender) {
-        selectedMsgId = id; 
-        selectedMsgText = safeDecode(b64Text); 
-        selectedMsgType = type; 
-        selectedMsgSender = sender;
+    // --- SWIPE TO REPLY ---
+    let swipeStartX = 0; let swipeTarget = null; let isSwiping = false;
+    function ts(e, el) { swipeStartX = e.touches[0].clientX; swipeTarget = el; isSwiping = false; el.style.transition = 'none'; }
+    function tm(e, el) { 
+        if(!swipeStartX) return; let d = swipeStartX - e.touches[0].clientX; 
+        if(d > 10) isSwiping = true; if(d > 0 && d < 60) el.style.transform = `translateX(-${d}px)`; 
+    }
+    function te(e, el, id, b64Text) {
+        if(!swipeStartX) return; let d = swipeStartX - e.changedTouches[0].clientX;
+        el.style.transition = 'transform 0.2s ease-out'; el.style.transform = `translateX(0)`;
         
-        document.getElementById('action-msg-preview').innerText = selectedMsgText ? selectedMsgText.replace(/<[^>]*>?/gm, '').substring(0,40) + "..." : "Media / File Audio";
+        let txt = safeDecode(b64Text);
+        if(d > 40 && isSwiping) { actionReplyManual(id, txt); } 
+        else if (!isSwiping) {
+            let msg = chatsData[activeChatId].messages.find(m => m.id === id);
+            if(msg) showMsgAction(id, txt, msg.type, msg.sender);
+        }
+        swipeStartX = 0; swipeTarget = null; isSwiping = false;
+    }
+
+    // --- ACTION MODAL ---
+    function showMsgAction(id, txt, type, sender) {
+        selectedMsgId = id; selectedMsgText = txt; selectedMsgType = type; selectedMsgSender = sender;
+        document.getElementById('action-msg-preview').innerText = txt ? txt.replace(/<[^>]*>?/gm, '').substring(0,40) + "..." : "Media / File Audio";
         document.getElementById('btn-edit-msg').style.display = sender === 'bot' && type === 'text' ? 'flex' : 'none'; 
         document.getElementById('msg-action-modal').classList.remove('hidden');
     }
@@ -467,10 +534,11 @@
         document.getElementById('msgInput').focus();
     }
     
-    function actionReply() { closeModal('msg-action-modal'); replyToMsgId = selectedMsgId; editMsgId = null; setActionUI("Membalas Pesan", selectedMsgText||"Media"); }
+    function actionReplyManual(id, txt) { replyToMsgId = id; editMsgId = null; setActionUI("Membalas Pesan", txt||"Media"); }
+    function actionReply() { closeModal('msg-action-modal'); actionReplyManual(selectedMsgId, selectedMsgText); }
     function actionEdit() { closeModal('msg-action-modal'); editMsgId = selectedMsgId; replyToMsgId = null; document.getElementById('msgInput').value = selectedMsgText; setActionUI("Edit Pesan", selectedMsgText); document.getElementById('send-btn').innerHTML = `<i class="fa-solid fa-check text-[18px]"></i>`; }
     function actionForward() { closeModal('msg-action-modal'); showTools('forward'); }
-    function actionCopy() { closeModal('msg-action-modal'); navigator.clipboard.writeText(selectedMsgText); showToast('Teks berhasil disalin!'); }
+    function actionCopy() { closeModal('msg-action-modal'); navigator.clipboard.writeText(selectedMsgText); showToast('Teks disalin!'); }
     
     async function actionRepeat() {
         closeModal('msg-action-modal');
@@ -492,7 +560,7 @@
         closeModal('msg-action-modal');
         await tgApi('deleteMessage', {chat_id: activeChatId, message_id: selectedMsgId});
         chatsData[activeChatId].messages = chatsData[activeChatId].messages.filter(m => m.id !== selectedMsgId);
-        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData)); 
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData)); 
         renderMessages(); renderSidebar(); showToast('Pesan dihapus');
     }
 
@@ -523,11 +591,10 @@
             let b64Text = safeEncode(msg.text); 
             let txtHtml = msg.text ? `<div class="text-[14.5px] leading-relaxed break-words whitespace-pre-wrap">${msg.text}</div>` : '';
 
-            // HANYA MENGGUNAKAN ONCLICK STANDAR (Paling aman di semua device)
             box.innerHTML += `
                 <div class="flex flex-col ${alignCls} w-full mb-1.5 overflow-hidden">
                     <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl ${bubCls} cursor-pointer active:scale-[0.98] transition-transform shadow-sm" 
-                         onclick="handleBubbleClick(${msg.id}, '${b64Text}', '${msg.type}', '${msg.sender}')">
+                         ontouchstart="ts(event, this)" ontouchmove="tm(event, this)" ontouchend="te(event, this, ${msg.id}, '${b64Text}')">
                         ${senderName} ${replyHtml} ${mediaHtml} ${txtHtml}
                         <div class="text-[10px] opacity-60 text-right mt-1 font-medium tracking-wide">${formatTime(msg.timestamp)}</div>
                     </div>
@@ -545,7 +612,7 @@
         if (sender === 'user' && activeChatId !== chatId) chatsData[chatId].unread = (chatsData[chatId].unread || 0) + 1;
         
         chatsData[chatId].messages.push({ id: msgId, text, sender, type, mediaUrl, replyToText: replyText, realSender, timestamp: Date.now() });
-        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData));
+        let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData));
         renderSidebar(); if (activeChatId == chatId) renderMessages();
         
         if(sender === 'user' && !chatsData[chatId].avatar) {
@@ -553,7 +620,7 @@
                 if (res.ok && res.result.total_count > 0) {
                     let fRes = await tgApi('getFile', { file_id: res.result.photos[0][0].file_id });
                     if(fRes.ok) { chatsData[chatId].avatar = `https://api.telegram.org/file/bot${activeToken}/${fRes.result.file_path}`;
-                        localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData)); renderSidebar(); }
+                        localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData)); renderSidebar(); }
                 }
             });
         }
@@ -562,7 +629,7 @@
     function startPolling() {
         if(pollingInterval) clearInterval(pollingInterval);
         let botId = bots.find(b => b.token === activeToken).id;
-        let offsetKey = `offset_v13_${botId}`; let localOffset = parseInt(localStorage.getItem(offsetKey)) || 0;
+        let offsetKey = `offset_v14_${botId}`; let localOffset = parseInt(localStorage.getItem(offsetKey)) || 0;
         
         pollingInterval = setInterval(async () => {
             let res = await tgApi('getUpdates', { offset: localOffset + 1 });
@@ -571,7 +638,6 @@
                     localOffset = update.update_id; localStorage.setItem(offsetKey, localOffset);
                     if (update.message) {
                         let msg = update.message; let type = 'text'; let mediaUrl = ''; let teks = msg.text || msg.caption || '';
-                        
                         let chatName = "Unknown";
                         if(msg.chat.type === 'private') { chatName = msg.from.first_name + (msg.from.last_name ? ' ' + msg.from.last_name : ''); } 
                         else { chatName = msg.chat.title || "Grup"; }
@@ -596,13 +662,12 @@
         }, 2000);
     }
 
-    // --- KIRIM FILE & PESAN ---
+    // --- KIRIM ---
     async function handleFileUpload() {
         let f = document.getElementById('fileUpload').files[0]; if (!f || !activeChatId) return;
         let isVid = f.type.startsWith('video/'); let isAud = f.type.startsWith('audio/');
         let method = isVid ? 'sendVideo' : (isAud ? 'sendAudio' : 'sendDocument');
         if(f.type.startsWith('image/')) method = 'sendPhoto';
-        
         let param = method.replace('send', '').toLowerCase();
         let fd = new FormData(); fd.append('chat_id', activeChatId); fd.append(param, f);
         if(replyToMsgId) fd.append('reply_to_message_id', replyToMsgId);
@@ -622,7 +687,7 @@
             if(res.ok) {
                 let msgIdx = chatsData[activeChatId].messages.findIndex(m => m.id === editMsgId);
                 if(msgIdx > -1) chatsData[activeChatId].messages[msgIdx].text = text;
-                let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v13_${botId}`, JSON.stringify(chatsData));
+                let botId = bots.find(b => b.token === activeToken).id; localStorage.setItem(`dz_chats_v14_${botId}`, JSON.stringify(chatsData));
                 renderMessages(); cancelAction(); showToast('Pesan diedit!');
             } else showToast('Gagal edit pesan', 'error');
             return;
