@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate LS Manager</title>
+    <style>
+        /* Biar background web-nya gak putih polos pas dibuka */
+        body {
+            background-color: #1a1a1a;
+            margin: 0;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        (function() {
+            // Biar gak dobel
+            if(document.getElementById('ultimate-ls-manager')) return;
+
+            // Bikin Kotak UI Utama
+            const container = document.createElement('div');
+            container.id = 'ultimate-ls-manager';
+            
+            // Posisi gue taruh di tengah kalau dibuka sebagai HTML mandiri
+            container.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; background:#1e1e1e; color:#fff; z-index:999999; border-radius:8px; padding:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); font-family: monospace; font-size: 14px; border: 1px solid #444;';
+            
+            // Desain HTML di dalamnya
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">
+                    <b style="font-size:18px; color:#00ffcc;">🚀 Ultimate LS Manager</b>
+                </div>
+                
+                <div style="display:flex; gap:5px; margin-bottom:15px;">
+                    <input type="text" id="uls-key" placeholder="Key..." style="flex:1; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:4px; outline:none;">
+                    <input type="text" id="uls-val" placeholder="Value..." style="flex:1; padding:10px; background:#333; border:1px solid #555; color:#fff; border-radius:4px; outline:none;">
+                    <button onclick="window.uls.add()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:bold;">Save</button>
+                </div>
+
+                <div style="max-height:300px; overflow-y:auto; border:1px solid #444; border-radius:4px; margin-bottom:15px; background:#252525;">
+                    <table style="width:100%; border-collapse: collapse; text-align:left;">
+                        <thead style="background:#111; position:sticky; top:0; z-index:2;">
+                            <tr>
+                                <th style="padding:10px; border-bottom:1px solid #555; color:#00ffcc;">Key</th>
+                                <th style="padding:10px; border-bottom:1px solid #555; color:#00ffcc;">Value</th>
+                                <th style="padding:10px; border-bottom:1px solid #555; text-align:center; color:#00ffcc;">Act</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uls-body"></tbody>
+                    </table>
+                </div>
+
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <button onclick="window.uls.export()" style="flex:1; background:#007bff; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">📥 Export JSON</button>
+                    <button onclick="document.getElementById('uls-file').click()" style="flex:1; background:#17a2b8; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">📤 Import JSON</button>
+                    <input type="file" id="uls-file" accept=".json" style="display:none;" onchange="window.uls.import(event)">
+                </div>
+                <button onclick="window.uls.clearAll()" style="width:100%; background:#dc3545; color:white; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold; letter-spacing:1px;">🚨 CLEAR ALL DATA 🚨</button>
+            `;
+
+            document.body.appendChild(container);
+
+            // Logika Fungsi
+            window.uls = {
+                refresh: function() {
+                    const tbody = document.getElementById('uls-body');
+                    tbody.innerHTML = '';
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        let val = localStorage.getItem(key);
+                        let displayVal = val.length > 50 ? val.substring(0, 50) + '...' : val; 
+                        
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #333';
+                        tr.innerHTML = `
+                            <td style="padding:10px; word-break:break-all; color:#e6e6e6; max-width:120px;">${key}</td>
+                            <td style="padding:10px; word-break:break-all; color:#aaa;" title='${val.replace(/'/g, "&#39;")}'>${displayVal}</td>
+                            <td style="padding:10px; text-align:center;">
+                                <button onclick="window.uls.del('${key}')" style="background:#ff4d4d; color:white; border:none; border-radius:3px; cursor:pointer; padding:6px 12px; font-weight:bold;">X</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                },
+                add: function() {
+                    const k = document.getElementById('uls-key').value;
+                    const v = document.getElementById('uls-val').value;
+                    if(k) {
+                        localStorage.setItem(k, v);
+                        document.getElementById('uls-key').value = '';
+                        document.getElementById('uls-val').value = '';
+                        this.refresh();
+                    }
+                },
+                del: function(key) {
+                    localStorage.removeItem(key);
+                    this.refresh();
+                },
+                clearAll: function() {
+                    if(confirm('Yakin hapus SEMUA data localStorage?')) {
+                        localStorage.clear();
+                        this.refresh();
+                    }
+                },
+                export: function() {
+                    let data = {};
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        data[key] = localStorage.getItem(key);
+                    }
+                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `LS_Backup_${window.location.hostname || 'local'}.json`;
+                    a.click();
+                },
+                import: function(e) {
+                    const file = e.target.files[0];
+                    if(!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            for(let key in data) {
+                                localStorage.setItem(key, data[key]);
+                            }
+                            window.uls.refresh();
+                            alert('✅ Data berhasil di-import!');
+                        } catch(err) {
+                            alert('❌ Format JSON tidak valid!');
+                        }
+                    };
+                    reader.readAsText(file);
+                    e.target.value = ''; 
+                }
+            };
+
+            // Jalankan
+            window.uls.refresh();
+        })();
+    </script>
+</body>
+</html>
